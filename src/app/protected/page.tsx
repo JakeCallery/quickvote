@@ -7,6 +7,7 @@ const ProtectedPage = async () => {
   const session = await getServerSession(authOptions);
   const log = new Logger();
   log.info("Hit protected page: ", { session: session });
+  await log.flush();
   return (
     <div>
       <p>Hello {session?.user?.name}</p>
