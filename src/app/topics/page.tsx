@@ -2,19 +2,18 @@ import React from "react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import TempSignIn from "@/app/components/TempSignin/TempSignIn";
-import Link from "next/link";
+import CreateTopicForm from "@/app/components/CreateTopicForm/CreateTopicForm";
+import TopicList from "@/app/components/TopicList/TopicList";
 
 const TopicsPage = async () => {
   const session = await getServerSession(authOptions);
 
   return (
     <>
+      <h1>Topics Page</h1>
+
       {session?.user?.name ? (
-        <div>
-          <h1>Topics Page</h1>
-          <p>Topics List</p>
-          <Link href="/createtopic">Create New Topic</Link>
-        </div>
+        <TopicList />
       ) : (
         <div>
           <p>Please sign in to view topics</p>
