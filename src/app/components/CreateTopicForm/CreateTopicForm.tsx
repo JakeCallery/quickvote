@@ -1,12 +1,24 @@
 "use client";
 import React, { FormEvent, useState } from "react";
 import { useLogger } from "next-axiom";
-const CreateTopicForm = () => {
+import { KeyedMutator, mutate } from "swr";
+import {
+  addTopic,
+  addTopicOptions,
+} from "@/app/components/TopicList/apiCallers";
+import { Topic } from "@/app/components/TopicList/topic";
+const CreateTopicForm = ({ mutate }: { mutate: KeyedMutator<Topic[]> }) => {
   const log = useLogger();
   const [nameText, setNameText] = useState("");
 
-  const onCreateClick = () => {
+  const onCreateClick = async () => {
     log.debug("Caught Create Click: ", { topicName: nameText });
+    const newTopic = { id: "terribleID", name: nameText };
+    try {
+      await mutate(addTopic(newTopic), addTopicOptions(newTopic));
+    } catch (err) {
+      console.error("Caught Error: ", err);
+    }
   };
 
   return (

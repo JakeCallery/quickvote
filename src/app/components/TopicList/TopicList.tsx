@@ -21,6 +21,7 @@ const TopicList = () => {
   } else if (error) {
     content = <p>{error.message}</p>;
   } else {
+    console.log("New Topics: ", topics);
     content = topics?.map((topic) => {
       return <li key={topic.id}>{topic.name}</li>;
     });
@@ -30,7 +31,7 @@ const TopicList = () => {
     <div>
       <p>Topics List</p>
       <ul>{content}</ul>
-      <CreateTopicForm />
+      <CreateTopicForm mutate={mutate} />
     </div>
   );
 };
