@@ -4,8 +4,9 @@ import CreateTopicForm from "@/app/components/CreateTopicForm/CreateTopicForm";
 import {
   getTopics,
   TOPICS_API_ENDPOINT,
-} from "@/app/components/TopicList/apiCallers";
+} from "@/app/apicallers/topicApiCallers";
 import useSWR from "swr";
+import Link from "next/link";
 
 const TopicList = () => {
   const {
@@ -31,7 +32,7 @@ const TopicList = () => {
     <div>
       <p>Topics List</p>
       <ul>{content}</ul>
-      <CreateTopicForm mutate={mutate} />
+      <Link href="/createtopic">Create New Topic</Link>
     </div>
   );
 };
