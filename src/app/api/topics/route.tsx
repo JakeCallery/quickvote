@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma/db";
 import schema from "@/app/api/topics/schema";
-import { getServerSession } from "next-auth";
 import { getToken } from "next-auth/jwt";
 import { Item } from "@/types/item";
 export async function GET(req: NextRequest) {
@@ -35,11 +34,11 @@ export async function POST(req: NextRequest) {
   }
 
   const newTopic = await prisma.topic.create({
+    // TODO: fix "items" typing issue
+    // @ts-ignore
     data: {
       name: body.name,
       userId: token.sub,
-      // TODO: fix "items" typing issue
-      // @ts-ignore
       items: {
         create: body.items.map((item: Item) => {
           return { name: item.name, userId: token.sub };
