@@ -2,7 +2,6 @@ import React from "react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import TempSignIn from "@/app/components/TempSignin/TempSignIn";
-import CreateTopicForm from "@/app/components/CreateTopicForm/CreateTopicForm";
 import TopicList from "@/app/components/TopicList/TopicList";
 
 const TopicsPage = async () => {

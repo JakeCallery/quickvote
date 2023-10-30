@@ -2,14 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma/db";
 import schema from "@/app/api/topics/schema";
 import { getServerSession } from "next-auth";
+import { getToken } from "next-auth/jwt";
 export async function GET(req: NextRequest) {
-  const topics = await prisma.topic.findMany();
+  const token = await getToken({ req: req });
+
+  if (!token) {
+    return NextResponse.json({ error: "User not logged in." }, { status: 401 });
+  }
+
+  const topics = await prisma.topic.findMany({
+    where: { userId: token?.sub },
+  });
   return NextResponse.json(topics);
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession();
-  console.log("Session: ", session);
+  const token = await getToken({ req: req });
+
+  if (!token) {
+    return NextResponse.json({ error: "User not logged in." }, { status: 401 });
+  }
+
   const body = await req.json();
   const validation = schema.safeParse(body);
 
@@ -23,6 +36,7 @@ export async function POST(req: NextRequest) {
   const newTopic = await prisma.topic.create({
     data: {
       name: body.name,
+      userId: token?.sub,
     },
   });
 
