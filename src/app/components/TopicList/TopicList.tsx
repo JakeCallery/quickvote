@@ -1,6 +1,5 @@
 "use client";
-import React, { useState } from "react";
-import CreateTopicForm from "@/app/components/CreateTopicForm/CreateTopicForm";
+import React from "react";
 import {
   getTopics,
   TOPICS_API_ENDPOINT,
@@ -13,7 +12,6 @@ const TopicList = () => {
     isLoading,
     error,
     data: topics,
-    mutate,
   } = useSWR(TOPICS_API_ENDPOINT, getTopics);
 
   let content;

@@ -26,15 +26,15 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
     setNewTopicItemName("");
   };
 
-  const onSaveChangesClick = () => {
-    console.log("Save Changes Clicked");
-
+  const onSaveChangesClick = async () => {
     try {
-      const resData = updateTopic({
+      const resData = await updateTopic({
         id: topic.id,
         name: topicName,
         items: topicItems,
       });
+
+      console.log("Res Data: ", resData);
     } catch (err) {
       console.error("Error: ", err);
     }

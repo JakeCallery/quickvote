@@ -11,12 +11,6 @@ import {
 } from "@prisma/client/runtime/library";
 import { Topic } from "@/types/topic";
 
-type PrismaError =
-  | PrismaClientInitializationError
-  | PrismaClientKnownRequestError
-  | PrismaClientRustPanicError
-  | PrismaClientUnknownRequestError;
-
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
@@ -175,7 +169,7 @@ export async function PUT(
 
   //commit changes
   try {
-    const commitResult = await prisma.$transaction(steps);
+    await prisma.$transaction(steps);
     return NextResponse.json({}, { status: 200 });
   } catch (err: unknown) {
     if (

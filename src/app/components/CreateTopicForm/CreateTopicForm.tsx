@@ -30,11 +30,13 @@ const CreateTopicForm = ({
   };
 
   const onAddItemClick = () => {
-    console.log("Click");
-    items.push({
-      id: Date.now().toString(),
-      name: newItemText,
-    });
+    setItems([
+      ...items,
+      {
+        id: Date.now().toString(),
+        name: newItemText,
+      },
+    ]);
     setNewItemText("");
   };
 
