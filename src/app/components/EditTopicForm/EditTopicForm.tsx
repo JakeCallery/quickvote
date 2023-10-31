@@ -3,7 +3,10 @@ import React, { FormEvent, useState } from "react";
 import { Topic } from "@/types/topic";
 import { Item } from "@/types/item";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+import {
+  faPenToSquare,
+  faCircleXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { updateTopic } from "@/app/apicallers/topicApiCallers";
 
 const EditTopicForm = ({ topic }: { topic: Topic }) => {
@@ -35,6 +38,12 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
     } catch (err) {
       console.error("Error: ", err);
     }
+  };
+
+  const deleteItem = (itemToRemove: Item) => {
+    console.log("Delete Item: ", itemToRemove);
+
+    setTopicItems(topicItems.filter((item) => item.id !== itemToRemove.id));
   };
 
   return (
@@ -86,6 +95,10 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
                         setItemToEdit(item);
                         setItemToEditText(item.name);
                       }}
+                    />
+                    <FontAwesomeIcon
+                      icon={faCircleXmark}
+                      onClick={() => deleteItem(item)}
                     />
                   </div>
                 )}

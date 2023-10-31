@@ -77,17 +77,40 @@ export async function PUT(
 
   //Add any new items
   const itemsToAdd = body.items.filter((bodyItem: Item) => {
-    if (!topic.items.find((topicItem) => topicItem.id === bodyItem.id)) {
-      return bodyItem;
-    }
+    return !topic.items.find((topicItem) => topicItem.id === bodyItem.id);
   });
 
-  //Delete any missing items
-  const itemsToDelete = topic.items.filter((topicItem: Item) => {
-    if (!body.items.find((bodyItem: Item) => bodyItem.id === topicItem.id)) {
-      return topicItem;
-    }
+  //build up new item
+  itemsToAdd.forEach((item: Item) => {
+    delete item.id;
+    item.userId = token.sub;
+    item.topicId = topic.id;
   });
+
+  if (itemsToAdd?.length > 0) {
+    steps.push(
+      prisma.item.createMany({
+        data: itemsToAdd,
+      }),
+    );
+  }
+
+  //Delete any missing items
+  const itemIdsToDelete = topic.items
+    .filter((topicItem: Item) => {
+      return !body.items.find((bodyItem: Item) => bodyItem.id === topicItem.id);
+    })
+    .map((item) => item.id);
+
+  if (itemIdsToDelete?.length > 0) {
+    steps.push(
+      prisma.item.deleteMany({
+        where: {
+          id: { in: itemIdsToDelete },
+        },
+      }),
+    );
+  }
 
   //update items that have changed
   const itemsToUpdate = body.items.filter((bodyItem: Item) => {
@@ -101,10 +124,10 @@ export async function PUT(
 
   console.log("Items to Update: ", itemsToUpdate);
   console.log("Items to Add: ", itemsToAdd);
-  console.log("Items to Delete: ", itemsToDelete);
+  console.log("Items to Delete: ", itemIdsToDelete);
 
   //commit changes
-  // const commitResult = await prisma.$transaction(steps);
+  const commitResult = await prisma.$transaction(steps);
   console.log(" -------- END --------- ");
 
   return NextResponse.json({}, { status: 200 });
