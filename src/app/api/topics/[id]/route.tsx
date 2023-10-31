@@ -3,6 +3,19 @@ import prisma from "@/prisma/db";
 import schema from "@/app/api/topics/schema";
 import { getToken } from "next-auth/jwt";
 import { Item } from "@/types/item";
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+} from "@prisma/client/runtime/library";
+import { Topic } from "@/types/topic";
+
+type PrismaError =
+  | PrismaClientInitializationError
+  | PrismaClientKnownRequestError
+  | PrismaClientRustPanicError
+  | PrismaClientUnknownRequestError;
 
 export async function GET(
   req: NextRequest,
@@ -14,22 +27,36 @@ export async function GET(
     return NextResponse.json({ error: "User not logged in." }, { status: 401 });
   }
 
-  const topic = await prisma.topic.findUnique({
-    where: { id: params.id, userId: token.sub },
-    include: { items: true },
-  });
+  try {
+    const topic = await prisma.topic.findUnique({
+      where: { id: params.id, userId: token.sub },
+      include: { items: true },
+    });
+    if (!topic)
+      return NextResponse.json({ error: "topic not found" }, { status: 404 });
 
-  if (!topic)
-    return NextResponse.json({ error: "topic not found" }, { status: 404 });
-
-  return NextResponse.json(topic);
+    return NextResponse.json(topic);
+  } catch (err: unknown) {
+    if (
+      err instanceof PrismaClientKnownRequestError ||
+      err instanceof PrismaClientUnknownRequestError
+    ) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    } else if (
+      err instanceof PrismaClientRustPanicError ||
+      err instanceof PrismaClientInitializationError
+    ) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    } else {
+      return NextResponse.json({ error: err }, { status: 500 });
+    }
+  }
 }
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  console.log(" -------- BEGIN --------- ");
   const token = await getToken({ req: req });
   if (!token) {
     return NextResponse.json({ error: "User not logged in." }, { status: 401 });
@@ -45,10 +72,25 @@ export async function PUT(
     );
   }
 
-  const topic = await prisma.topic.findUnique({
-    where: { id: params.id, userId: token.sub },
-    include: { items: true },
-  });
+  let topic: Topic;
+  try {
+    topic = (await prisma.topic.findUnique({
+      where: { id: params.id, userId: token.sub },
+      include: { items: true },
+    })) as Topic;
+  } catch (err: any) {
+    if (err instanceof PrismaClientKnownRequestError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    } else if (
+      err instanceof PrismaClientUnknownRequestError ||
+      err instanceof PrismaClientRustPanicError ||
+      err instanceof PrismaClientInitializationError
+    ) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    } else {
+      return NextResponse.json({ error: err }, { status: 500 });
+    }
+  }
 
   if (!topic)
     return NextResponse.json({ error: "topic not found" }, { status: 404 });
@@ -57,9 +99,6 @@ export async function PUT(
 
   //Update Topic Name if needed
   if (topic.name !== body.name) {
-    console.log(
-      `Need to update Topic Name from ${topic.name} to ${body.name} `,
-    );
     steps.push(
       prisma.topic.update({
         where: {
@@ -71,9 +110,6 @@ export async function PUT(
       }),
     );
   }
-
-  console.log("Topic Items: ", topic.items);
-  console.log("Body Items: ", body.items);
 
   //Add any new items
   const itemsToAdd = body.items.filter((bodyItem: Item) => {
@@ -100,13 +136,15 @@ export async function PUT(
     .filter((topicItem: Item) => {
       return !body.items.find((bodyItem: Item) => bodyItem.id === topicItem.id);
     })
-    .map((item) => item.id);
+    .map((item) => item.id!);
 
-  if (itemIdsToDelete?.length > 0) {
+  if (itemIdsToDelete && itemIdsToDelete.length > 0) {
     steps.push(
       prisma.item.deleteMany({
         where: {
           id: { in: itemIdsToDelete },
+          topicId: topic.id,
+          userId: token.sub,
         },
       }),
     );
@@ -117,18 +155,41 @@ export async function PUT(
     const foundItem = topic.items.find(
       (topicItem) => topicItem.id === bodyItem.id,
     );
-    if (foundItem && foundItem.name !== bodyItem.name) {
-      return bodyItem;
-    }
+    return foundItem && foundItem.name !== bodyItem.name;
   });
 
-  console.log("Items to Update: ", itemsToUpdate);
-  console.log("Items to Add: ", itemsToAdd);
-  console.log("Items to Delete: ", itemIdsToDelete);
+  itemsToUpdate.forEach((item: Item) => {
+    steps.push(
+      prisma.item.update({
+        where: {
+          id: item.id,
+          userId: token.sub,
+          topicId: topic.id,
+        },
+        data: {
+          name: item.name,
+        },
+      }),
+    );
+  });
 
   //commit changes
-  const commitResult = await prisma.$transaction(steps);
-  console.log(" -------- END --------- ");
-
-  return NextResponse.json({}, { status: 200 });
+  try {
+    const commitResult = await prisma.$transaction(steps);
+    return NextResponse.json({}, { status: 200 });
+  } catch (err: unknown) {
+    if (
+      err instanceof PrismaClientKnownRequestError ||
+      err instanceof PrismaClientUnknownRequestError
+    ) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    } else if (
+      err instanceof PrismaClientRustPanicError ||
+      err instanceof PrismaClientInitializationError
+    ) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    } else {
+      return NextResponse.json({ error: err }, { status: 500 });
+    }
+  }
 }
