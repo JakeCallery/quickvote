@@ -8,12 +8,12 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
   const host = headersList.get("x-forwarded-host");
   const proto = headersList.get("x-forwarded-proto");
   console.log(`Proto: ${proto}, Host: ${host}`);
-  // const res = await fetch(`${proto}://${host}/api/topics/${params.id}`, {
-  //   headers: headersList,
-  // });
 
   try {
-    const res = await fetch(`${proto}://${host}/api/topics/${params.id}`);
+    // const res = await fetch(`${proto}://${host}/api/topics/${params.id}`);
+    const res = await fetch(`${proto}://${host}/api/topics/${params.id}`, {
+      headers: headers(),
+    });
 
     if (res.status === 404)
       return (
@@ -23,11 +23,20 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
       );
 
     if (res.status !== 200) {
-      const data = await res.json();
-      const error = data?.error || null;
+      let data;
+      let error;
+      try {
+        data = await res.json();
+      } catch (err) {
+        error = err;
+      }
+      // const error = data?.error || null;
+      if (error) {
+        console.error("[JAC]Error: ", error);
+      }
       return (
         <div>
-          <h1>Error Getting topic: {error || "unknown error"}</h1>
+          <h1>Error Getting topic: {error?.toString() || "unknown error"}</h1>
         </div>
       );
     }
