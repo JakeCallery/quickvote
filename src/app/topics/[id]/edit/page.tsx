@@ -9,7 +9,7 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
   const proto = headersList.get("x-forwarded-proto");
   console.log(`Proto: ${proto}, Host: ${host}`);
   const res = await fetch(`${proto}://${host}/api/topics/${params.id}`, {
-    headers: headersList,
+    // headers: headersList,
   });
 
   if (res.status === 404)
