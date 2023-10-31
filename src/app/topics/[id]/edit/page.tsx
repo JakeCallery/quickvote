@@ -11,7 +11,9 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
 
   try {
     // const res = await fetch(`${proto}://${host}/api/topics/${params.id}`);
+    console.log("[JAC]URL: ", `${proto}://${host}/api/topics/${params.id}`);
     const res = await fetch(`${proto}://${host}/api/topics/${params.id}`, {
+      method: "GET",
       headers: headers(),
     });
 
@@ -49,7 +51,7 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
       </div>
     );
   } catch (err) {
-    console.error("Error: ", err);
+    console.error("[JAC]Error: ", err);
   }
 };
 
