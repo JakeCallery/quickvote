@@ -1,5 +1,5 @@
 import { Topic } from "@/types/topic";
-import { mutate, MutatorOptions } from "swr";
+import { MutatorOptions } from "swr";
 import { Item } from "@/types/item";
 
 export const TOPICS_API_ENDPOINT = "/api/topics";
@@ -37,4 +37,19 @@ export const getItems = async (topicId: string) => {
   const res = await fetch(`${TOPICS_API_ENDPOINT}/${topicId}/items`);
   const data = (await res.json()) as Item[];
   return data;
+};
+
+export const updateTopic = async (updatedTopic: Topic) => {
+  // const items = updatedTopic.items.map((item) => {
+  //   return { name: item.name };
+  // });
+  const data = { name: updatedTopic.name, items: updatedTopic.items };
+
+  const res = await fetch(`${TOPICS_API_ENDPOINT}/${updatedTopic.id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+
+  const resData = await res.json();
+  return resData;
 };

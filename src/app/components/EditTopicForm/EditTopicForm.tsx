@@ -4,6 +4,7 @@ import { Topic } from "@/types/topic";
 import { Item } from "@/types/item";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+import { updateTopic } from "@/app/apicallers/topicApiCallers";
 
 const EditTopicForm = ({ topic }: { topic: Topic }) => {
   const [topicName, setTopicName] = useState(topic.name);
@@ -23,7 +24,17 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
   };
 
   const onSaveChangesClick = () => {
-    if (topic.name !== topicName) console.log("Update topic Name");
+    console.log("Save Changes Clicked");
+
+    try {
+      const resData = updateTopic({
+        id: topic.id,
+        name: topicName,
+        items: topicItems,
+      });
+    } catch (err) {
+      console.error("Error: ", err);
+    }
   };
 
   return (
@@ -96,7 +107,7 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
           <button onClick={onAddItemClick}>Add</button>
         </li>
       </ul>
-      <button>Save Changes</button>
+      <button onClick={onSaveChangesClick}>Save Changes</button>
     </div>
   );
 };
