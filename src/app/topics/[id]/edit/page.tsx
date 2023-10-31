@@ -7,6 +7,7 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
   const headersList = headers();
   const host = headersList.get("x-forwarded-host");
   const proto = headersList.get("x-forwarded-proto");
+  const cookie = headersList.get("cookie");
   console.log(`Proto: ${proto}, Host: ${host}`);
 
   try {
@@ -14,7 +15,9 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
     console.log("[JAC]URL: ", `${proto}://${host}/api/topics/${params.id}`);
     const res = await fetch(`${proto}://${host}/api/topics/${params.id}`, {
       method: "GET",
-      headers: headers(),
+      headers: {
+        Cookie: cookie,
+      },
     });
 
     if (res.status === 404)
