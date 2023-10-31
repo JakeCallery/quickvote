@@ -13,10 +13,11 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
   try {
     // const res = await fetch(`${proto}://${host}/api/topics/${params.id}`);
     console.log("[JAC]URL: ", `${proto}://${host}/api/topics/${params.id}`);
+    console.log("Cookie: ", cookie);
     const res = await fetch(`${proto}://${host}/api/topics/${params.id}`, {
       method: "GET",
       headers: {
-        Cookie: cookie,
+        Cookie: cookie!,
       },
     });
 
