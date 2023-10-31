@@ -4,6 +4,9 @@ import "./globals.css";
 import AuthProvider from "@/app/auth/Provider";
 import React from "react";
 import { AxiomWebVitals } from "next-axiom";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+import { config } from "@fortawesome/fontawesome-svg-core";
+config.autoAddCss = false;
 
 const inter = Inter({ subsets: ["latin"] });
 
