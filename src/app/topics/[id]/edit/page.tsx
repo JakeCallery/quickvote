@@ -12,32 +12,36 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
   //   headers: headersList,
   // });
 
-  const res = await fetch(`${proto}://${host}/api/topics/${params.id}`);
+  try {
+    const res = await fetch(`${proto}://${host}/api/topics/${params.id}`);
 
-  if (res.status === 404)
+    if (res.status === 404)
+      return (
+        <div>
+          <h1>Topic Not Found</h1>
+        </div>
+      );
+
+    if (res.status !== 200) {
+      const data = await res.json();
+      const error = data?.error || null;
+      return (
+        <div>
+          <h1>Error Getting topic: {error || "unknown error"}</h1>
+        </div>
+      );
+    }
+
+    const topic = (await res.json()) as Topic;
     return (
       <div>
-        <h1>Topic Not Found</h1>
+        <h1>Edit Topic</h1>
+        <EditTopicForm topic={topic} />
       </div>
     );
-
-  if (res.status !== 200) {
-    const data = await res.json();
-    const error = data?.error || null;
-    return (
-      <div>
-        <h1>Error Getting topic: {error || "unknown error"}</h1>
-      </div>
-    );
+  } catch (err) {
+    console.error("Error: ", err);
   }
-
-  const topic = (await res.json()) as Topic;
-  return (
-    <div>
-      <h1>Edit Topic</h1>
-      <EditTopicForm topic={topic} />
-    </div>
-  );
 };
 
 export default EditTopicPage;
