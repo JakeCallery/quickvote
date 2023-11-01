@@ -8,55 +8,55 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
   const host = headersList.get("x-forwarded-host");
   const proto = headersList.get("x-forwarded-proto");
   const cookie = headersList.get("cookie");
-  console.log(`Proto: ${proto}, Host: ${host}`);
 
-  try {
-    // const res = await fetch(`${proto}://${host}/api/topics/${params.id}`);
-    console.log("[JAC]URL: ", `${proto}://${host}/api/topics/${params.id}`);
-    console.log("Cookie: ", cookie);
-    const res = await fetch(`${proto}://${host}/api/topics/${params.id}`, {
-      method: "GET",
-      headers: {
-        Cookie: cookie!,
-      },
-    });
-
-    if (res.status === 404)
-      return (
-        <div>
-          <h1>Topic Not Found</h1>
-        </div>
-      );
-
-    if (res.status !== 200) {
-      let data;
-      let error;
-      try {
-        data = await res.json();
-      } catch (err) {
-        error = err;
-      }
-      // const error = data?.error || null;
-      if (error) {
-        console.error("[JAC]Error: ", error);
-      }
-      return (
-        <div>
-          <h1>Error Getting topic: {error?.toString() || "unknown error"}</h1>
-        </div>
-      );
-    }
-
-    const topic = (await res.json()) as Topic;
+  if (!host || !proto) {
     return (
       <div>
-        <h1>Edit Topic</h1>
-        <EditTopicForm topic={topic} />
+        <h1>
+          Error Getting topic:{" "}
+          {"There is a problem on the server, please try again later."}
+        </h1>
       </div>
     );
-  } catch (err) {
-    console.error("[JAC]Error: ", err);
   }
+
+  const res = await fetch(`${proto}://${host}/api/topics/${params.id}`, {
+    method: "GET",
+    headers: {
+      Cookie: cookie!,
+    },
+  });
+
+  if (res.status === 404)
+    return (
+      <div>
+        <h1>Topic Not Found</h1>
+      </div>
+    );
+
+  if (res.status !== 200) {
+    let error;
+    try {
+      const data = await res.json();
+      error = data?.error || "Unknown Error";
+    } catch (err) {
+      error = err;
+    }
+
+    return (
+      <div>
+        <h1>Error Getting topic: {error?.toString() || "Unknown Error"}</h1>
+      </div>
+    );
+  }
+
+  const topic = (await res.json()) as Topic;
+  return (
+    <div>
+      <h1>Edit Topic</h1>
+      <EditTopicForm topic={topic} />
+    </div>
+  );
 };
 
 export default EditTopicPage;

@@ -33,16 +33,12 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
         name: topicName,
         items: topicItems,
       });
-
-      console.log("Res Data: ", resData);
     } catch (err) {
       console.error("Error: ", err);
     }
   };
 
   const deleteItem = (itemToRemove: Item) => {
-    console.log("Delete Item: ", itemToRemove);
-
     setTopicItems(topicItems.filter((item) => item.id !== itemToRemove.id));
   };
 
