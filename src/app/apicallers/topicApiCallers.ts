@@ -1,8 +1,7 @@
 import { Topic } from "@/types/topic";
 import { MutatorOptions } from "swr";
 import { Item } from "@/types/item";
-
-export const TOPICS_API_ENDPOINT = "/api/topics";
+import { TOPICS_API_ENDPOINT } from "@/app/config/paths";
 
 export const getTopics = async () => {
   const res = await fetch(TOPICS_API_ENDPOINT);
@@ -38,6 +37,33 @@ export const addTopicOptions = (newTopic: Topic): MutatorOptions => {
     optimisticData: (topics: Topic[]) => [...topics, newTopic],
     revalidate: false,
     populateCache: (added, topics) => [...topics, added],
+  };
+};
+
+export const deleteTopic = async (topicId: string) => {
+  const res = await fetch(`${TOPICS_API_ENDPOINT}/${topicId}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const error = new Error(
+      "An error occurred while deleting the topic.",
+    ) as FetchError;
+    error.info = await res.json();
+    error.status = res.status;
+    throw error;
+  }
+
+  return await res.json();
+};
+
+export const deleteTopicOptions = (topicIdToRemove: string): MutatorOptions => {
+  return {
+    optimisticData: (topics: Topic[]) =>
+      topics.filter((topic: Topic) => topic.id !== topicIdToRemove),
+    revalidate: false,
+    populateCache: (deletedTopic, topics) =>
+      topics.filter((topic: Topic) => topic.id !== deletedTopic.id),
   };
 };
 

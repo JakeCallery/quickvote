@@ -64,7 +64,7 @@ model VerificationToken {
 model Topic {
   id     String @id @default(cuid())
   name   String
-  User   User   @relation(fields: [userId], references: [id])
+  User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
   items  Item[]
 
@@ -74,9 +74,9 @@ model Topic {
 model Item {
   id      String @id @default(cuid())
   name    String
-  User    User   @relation(fields: [userId], references: [id])
+  User    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId  String
-  Topic   Topic  @relation(fields: [topicId], references: [id])
+  Topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
   topicId String
 
   @@index([userId])

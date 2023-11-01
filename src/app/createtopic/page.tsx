@@ -2,10 +2,8 @@
 import React from "react";
 import CreateTopicForm from "@/app/components/CreateTopicForm/CreateTopicForm";
 import useSWR from "swr";
-import {
-  getTopics,
-  TOPICS_API_ENDPOINT,
-} from "@/app/apicallers/topicApiCallers";
+import { getTopics } from "@/app/apicallers/topicApiCallers";
+import { TOPICS_API_ENDPOINT } from "@/app/config/paths";
 
 const CreateTopicPage = () => {
   const {

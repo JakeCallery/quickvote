@@ -2,6 +2,7 @@ import React from "react";
 import EditTopicForm from "@/app/components/EditTopicForm/EditTopicForm";
 import { Topic } from "@/types/topic";
 import { headers } from "next/headers";
+import { TOPICS_API_ENDPOINT } from "@/app/config/paths";
 
 const EditTopicPage = async ({ params }: { params: { id: string } }) => {
   const headersList = headers();
@@ -20,12 +21,15 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
     );
   }
 
-  const res = await fetch(`${proto}://${host}/api/topics/${params.id}`, {
-    method: "GET",
-    headers: {
-      Cookie: cookie!,
+  const res = await fetch(
+    `${proto}://${host}${TOPICS_API_ENDPOINT}/${params.id}`,
+    {
+      method: "GET",
+      headers: {
+        Cookie: cookie!,
+      },
     },
-  });
+  );
 
   if (res.status === 404)
     return (
