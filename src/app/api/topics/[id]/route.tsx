@@ -47,6 +47,43 @@ export async function GET(
   }
 }
 
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const token = await getToken({ req: req });
+
+  if (!token) {
+    return NextResponse.json({ error: "User not logged in." }, { status: 401 });
+  }
+
+  try {
+    const topic = await prisma.topic.findUnique({
+      where: { id: params.id, userId: token.sub },
+    });
+    if (!topic)
+      return NextResponse.json({ error: "topic not found" }, { status: 404 });
+
+    await prisma.topic.delete({
+      where: { id: topic.id },
+    });
+
+    return NextResponse.json(topic, { status: 200 });
+  } catch (err: any) {
+    if (err instanceof PrismaClientKnownRequestError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    } else if (
+      err instanceof PrismaClientUnknownRequestError ||
+      err instanceof PrismaClientRustPanicError ||
+      err instanceof PrismaClientInitializationError
+    ) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    } else {
+      return NextResponse.json({ error: err }, { status: 500 });
+    }
+  }
+}
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } },
