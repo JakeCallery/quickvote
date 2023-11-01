@@ -2,6 +2,7 @@ import { Topic } from "@/types/topic";
 import { MutatorOptions } from "swr";
 import { Item } from "@/types/item";
 import { TOPICS_API_ENDPOINT } from "@/app/config/paths";
+import { VoteCount } from "@/types/voteCount";
 
 export const getTopics = async () => {
   const res = await fetch(TOPICS_API_ENDPOINT);
@@ -16,6 +17,70 @@ export const getTopics = async () => {
   }
 
   return (await res.json()) as Topic[];
+};
+
+export const getVotesForTopic = async (url: string) => {
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    const error = new Error(
+      "An error occurred while fetching the topics.",
+    ) as FetchError;
+    error.info = await res.json();
+    error.status = res.status;
+    throw error;
+  }
+
+  const data = await res.json();
+  return data.counts as VoteCount[];
+};
+
+export const addVote = async (
+  itemId: string,
+  topicId: string,
+  currentVoteCount: VoteCount,
+): Promise<any> => {
+  const res = await fetch(`${TOPICS_API_ENDPOINT}/${topicId}/votes`, {
+    method: "POST",
+    body: JSON.stringify({ itemId: itemId }),
+  });
+
+  //TODO: Test this error handling
+  if (!res.ok) {
+    const error = new Error(
+      "An error occurred while fetching the topics.",
+    ) as FetchError;
+    error.info = await res.json();
+    error.status = res.status;
+    throw error;
+  }
+
+  const data = await res.json();
+
+  return {
+    itemId: data.itemId,
+    voteCount: currentVoteCount.voteCount + 1,
+  };
+};
+
+export const addVoteOptions = (currentVC: VoteCount): MutatorOptions => {
+  return {
+    optimisticData: (voteCounts: VoteCount[]) => {
+      return voteCounts.map((vc) => {
+        const newVc: VoteCount = { itemId: vc.itemId, voteCount: vc.voteCount };
+        if (newVc.itemId === currentVC.itemId) newVc.voteCount++;
+        return newVc;
+      });
+    },
+    revalidate: false,
+    populateCache: (newVote, voteCounts: VoteCount[]) => {
+      return voteCounts.map((vc: VoteCount) => {
+        const newVc: VoteCount = { itemId: vc.itemId, voteCount: vc.voteCount };
+        if (newVc.itemId === newVote.itemId) newVc.voteCount++;
+        return newVc;
+      });
+    },
+  };
 };
 
 export const addTopic = async (newTopic: Topic) => {

@@ -51,6 +51,7 @@ model User {
   sessions      Session[]
   topics        Topic[]
   items         Item[]
+  Vote          Vote[]
 }
 
 model VerificationToken {
@@ -62,11 +63,13 @@ model VerificationToken {
 }
 
 model Topic {
-  id     String @id @default(cuid())
+  id     String  @id @default(cuid())
   name   String
-  User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
   items  Item[]
+  isOpen Boolean @default(true)
+  Vote   Vote[]
 
   @@index([userId])
 }
@@ -78,7 +81,23 @@ model Item {
   userId  String
   Topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
   topicId String
+  Vote    Vote[]
 
   @@index([userId])
+  @@index([topicId])
+}
+
+model Vote {
+  id            String   @id @default(cuid())
+  Owner         User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId       String
+  Item          Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId        String
+  Topic         Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId       String
+  timeSubmitted DateTime @default(now())
+
+  @@index([ownerId])
+  @@index([itemId])
   @@index([topicId])
 }

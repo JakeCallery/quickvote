@@ -3,4 +3,5 @@ export type Item = {
   id?: string;
   userId?: string;
   topicId?: string;
+  voteCount?: number;
 };

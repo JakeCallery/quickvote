@@ -4,4 +4,5 @@ export type Topic = {
   id: string;
   name: string;
   items: Item[];
+  isOpen?: boolean;
 };
