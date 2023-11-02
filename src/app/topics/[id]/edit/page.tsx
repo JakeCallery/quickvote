@@ -3,7 +3,6 @@ import EditTopicForm from "@/app/components/EditTopicForm/EditTopicForm";
 import { Topic } from "@/types/topic";
 import { headers } from "next/headers";
 import { TOPICS_API_ENDPOINT } from "@/app/config/paths";
-import TopicList from "@/app/components/TopicList/TopicList";
 import TempSignIn from "@/app/components/TempSignin/TempSignIn";
 
 const EditTopicPage = async ({ params }: { params: { id: string } }) => {
