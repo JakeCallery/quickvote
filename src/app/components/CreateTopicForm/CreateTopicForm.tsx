@@ -29,10 +29,15 @@ const CreateTopicForm = ({
 
   const onCreateClick = async () => {
     // log.debug("Caught Create Click: ", { topicName: nameText });
+
+    const trimmedItems = items.map((item) => {
+      return { ...item, name: item.name.trim() };
+    });
+
     const newTopic = {
       id: Date.now().toString(),
-      name: nameText,
-      items: items,
+      name: nameText.trim(),
+      items: trimmedItems,
     };
     let res;
     if (mutateTopic) {
@@ -114,7 +119,7 @@ const CreateTopicForm = ({
                         setItemToEditText(e.currentTarget.value)
                       }
                       onBlur={() => {
-                        item.name = itemToEditText;
+                        item.name = itemToEditText.trim();
                         setItemToEditText("");
                         setItemToEdit(null);
                       }}

@@ -3,6 +3,8 @@ import EditTopicForm from "@/app/components/EditTopicForm/EditTopicForm";
 import { Topic } from "@/types/topic";
 import { headers } from "next/headers";
 import { TOPICS_API_ENDPOINT } from "@/app/config/paths";
+import TopicList from "@/app/components/TopicList/TopicList";
+import TempSignIn from "@/app/components/TempSignin/TempSignIn";
 
 const EditTopicPage = async ({ params }: { params: { id: string } }) => {
   const headersList = headers();
@@ -17,6 +19,15 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
           Error Getting topic:{" "}
           {"There is a problem on the server, please try again later."}
         </h1>
+      </div>
+    );
+  }
+
+  if (!cookie) {
+    return (
+      <div>
+        <p>Please sign in to view topics</p>
+        <TempSignIn />
       </div>
     );
   }
@@ -56,9 +67,16 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
 
   const topic = (await res.json()) as Topic;
   return (
-    <div>
-      <h1>Edit Topic</h1>
-      <EditTopicForm topic={topic} />
+    <div className="flex justify-center">
+      <div className=" w-2/3 flex justify-center">
+        <div>
+          <h1 className="font-black text-7xl text-secondary text-center">
+            EDIT TOPIC
+          </h1>
+          <div className="divider"></div>
+          <EditTopicForm topic={topic} />
+        </div>
+      </div>
     </div>
   );
 };

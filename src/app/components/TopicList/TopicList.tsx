@@ -11,7 +11,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPenToSquare,
   faCircleXmark,
-  faEye,
   faLockOpen,
   faLock,
 } from "@fortawesome/free-solid-svg-icons";
