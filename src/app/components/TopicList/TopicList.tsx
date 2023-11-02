@@ -29,8 +29,6 @@ const TopicList = () => {
     data: topics,
   } = useSWR(TOPICS_API_ENDPOINT, getTopics);
 
-  console.log("Topics: ", topics);
-
   const [topicToDelete, setTopicToDelete] = useState<Topic>();
 
   const callDeleteTopic = async (topicId: string) => {
@@ -49,14 +47,6 @@ const TopicList = () => {
   } else {
     content = (
       <table className="table">
-        {/*<thead>*/}
-        {/*  <tr>*/}
-        {/*    <th></th>*/}
-        {/*    <th>Topic</th>*/}
-        {/*    <th>Edit</th>*/}
-        {/*    <th>Delete</th>*/}
-        {/*  </tr>*/}
-        {/*</thead>*/}
         <tbody>
           {topics?.map((topic) => {
             return (
