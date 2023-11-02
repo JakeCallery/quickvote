@@ -41,43 +41,33 @@ const TopicVote = ({ topic }: { topic: Topic }) => {
   };
 
   return (
-    <div>
-      <table className="table">
-        <tbody>
-          {topic.items.map((item) => {
-            return (
-              <tr key={item.id}>
-                <td>
-                  <div className="flex-row space-x-2">
-                    <button
-                      className="btn btn-circle btn-primary"
-                      onClick={() => onPlusVoteClick(item)}
-                      disabled={isVoteDisabled}
-                    >
-                      <span className="text-2xl font-bold">+</span>
-                    </button>
-                    <button
-                      className="btn btn-circle btn-primary"
-                      onClick={() => onMinusVoteClick(item)}
-                      disabled={isVoteDisabled || true}
-                    >
-                      <span className="text-2xl font-bold">-</span>
-                    </button>
-                  </div>
-                </td>
-                <td>
-                  <span className="font-bold">{item.name}</span>
-                </td>
-                <td>
-                  <span>
-                    {voteCounts?.find((vc) => vc.itemId === item.id)?.voteCount}
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div className="flex-col space-y-2">
+      {topic.items.map((item) => {
+        return (
+          <div className="flex space-x-2 items-center" key={item.id}>
+            <div className="flex space-x-2">
+              <button
+                className="btn btn-circle btn-primary"
+                onClick={() => onPlusVoteClick(item)}
+                disabled={isVoteDisabled}
+              >
+                <span className="text-2xl font-bold">+</span>
+              </button>
+              <button
+                className="btn btn-circle btn-primary"
+                onClick={() => onMinusVoteClick(item)}
+                disabled={isVoteDisabled || true}
+              >
+                <span className="text-2xl font-bold">-</span>
+              </button>
+            </div>
+            <p className="text-xl font-semibold flex-grow">{item.name}</p>
+            <p className="">
+              {voteCounts?.find((vc) => vc.itemId === item.id)?.voteCount}
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 };
