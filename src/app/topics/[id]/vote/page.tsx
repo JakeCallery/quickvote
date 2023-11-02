@@ -6,6 +6,7 @@ import { Topic } from "@/types/topic";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import TempSignIn from "@/app/components/TempSignin/TempSignIn";
+import AdminSection from "@/app/topics/[id]/vote/components/AdminSection";
 
 const VoteOnTopicPage = async ({ params }: { params: { id: string } }) => {
   const session = await getServerSession(authOptions);
@@ -70,9 +71,22 @@ const VoteOnTopicPage = async ({ params }: { params: { id: string } }) => {
   const topic = (await res.json()) as Topic;
 
   return (
-    <div>
-      <h1>vote page</h1>
-      <TopicVote topic={topic} />
+    <div className="flex justify-center">
+      <div className=" w-2/3 flex justify-center">
+        <div>
+          <h1 className="font-black text-7xl text-secondary text-center">
+            {topic.name}
+          </h1>
+          <div className="divider"></div>
+          <TopicVote topic={topic} />
+          {session.user.id === topic.userId && (
+            <div>
+              <div className="divider"></div>
+              <AdminSection />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

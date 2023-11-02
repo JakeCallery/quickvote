@@ -9,7 +9,7 @@ const MyComponent = () => {
   return (
     <div className="navbar bg-base-200">
       <div className="flex-1">
-        <Link className="btn btn-ghost normal-case text-3xl" href="/">
+        <Link className="btn btn-ghost normal-case text-3xl" href="/topics">
           <span className="text-primary">QuickVote</span>
         </Link>
       </div>

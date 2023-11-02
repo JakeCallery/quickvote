@@ -64,7 +64,7 @@ const TopicList = () => {
                     <FontAwesomeIcon icon={faLock} />
                   </td>
                 )}
-                <td key={topic.id}>{topic.name}</td>
+                <td>{topic.name}</td>
                 <td className="text-center">
                   <FontAwesomeIcon
                     icon={faPenToSquare}

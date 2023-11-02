@@ -5,4 +5,5 @@ export type Topic = {
   name: string;
   items: Item[];
   isOpen?: boolean;
+  userId?: string;
 };
