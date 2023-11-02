@@ -24,7 +24,7 @@ const TopicVote = ({ topic }: { topic: Topic }) => {
   // currently the state doesn't update fast enough, so sending the current vote count
   // to use in the cache calculation doesn't really work in that situation.
   // Currently disabling all buttons until vote is complete.
-  const handleVoteClick = async (item: Item) => {
+  const onPlusVoteClick = async (item: Item) => {
     const currentVC = voteCounts?.find((vc) => vc.itemId === item.id);
     if (currentVC) {
       setIsVoteDisabled(true);
@@ -36,30 +36,38 @@ const TopicVote = ({ topic }: { topic: Topic }) => {
     }
   };
 
+  const onMinusVoteClick = (item: Item) => {
+    console.log("Minus Click: ", item.id);
+  };
+
   return (
-    <div>
-      <h1 className="font-extrabold">{topic.name}</h1>
-      <ul>
-        {topic.items.map((item) => {
-          return (
-            <li key={item.id}>
-              <div className="flex-row space-x-2">
-                <button
-                  className="border rounded-2xl bg-sky-500 p-2"
-                  onClick={() => handleVoteClick(item)}
-                  disabled={isVoteDisabled}
-                >
-                  Add Vote
-                </button>
-                <span className="font-bold">{item.name}</span>
-                <span>
-                  {voteCounts?.find((vc) => vc.itemId === item.id)?.voteCount}
-                </span>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+    <div className="flex-col space-y-2">
+      {topic.items.map((item) => {
+        return (
+          <div className="flex space-x-2 items-center" key={item.id}>
+            <div className="flex space-x-2">
+              <button
+                className="btn btn-circle btn-primary"
+                onClick={() => onPlusVoteClick(item)}
+                disabled={isVoteDisabled}
+              >
+                <span className="text-2xl font-bold">+</span>
+              </button>
+              <button
+                className="btn btn-circle btn-primary"
+                onClick={() => onMinusVoteClick(item)}
+                disabled={isVoteDisabled || true}
+              >
+                <span className="text-2xl font-bold">-</span>
+              </button>
+            </div>
+            <p className="text-xl font-semibold flex-grow">{item.name}</p>
+            <p className="">
+              {voteCounts?.find((vc) => vc.itemId === item.id)?.voteCount}
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 };

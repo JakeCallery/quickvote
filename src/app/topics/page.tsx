@@ -8,18 +8,26 @@ const TopicsPage = async () => {
   const session = await getServerSession(authOptions);
 
   return (
-    <>
-      <h1>Topics Page</h1>
-
-      {session?.user?.name ? (
-        <TopicList />
-      ) : (
+    <div className="flex justify-center">
+      <div className=" w-2/3 flex justify-center">
         <div>
-          <p>Please sign in to view topics</p>
-          <TempSignIn />
+          <h1 className="font-black text-7xl text-secondary text-center">
+            TOPICS
+          </h1>
+          <div className="divider"></div>
+          <div className="">
+            {session?.user?.name ? (
+              <TopicList />
+            ) : (
+              <div>
+                <p>Please sign in to view topics</p>
+                <TempSignIn />
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 };
 

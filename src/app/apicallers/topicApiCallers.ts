@@ -45,22 +45,25 @@ export const addVote = async (
     body: JSON.stringify({ itemId: itemId }),
   });
 
-  //TODO: Test this error handling
-  if (!res.ok) {
-    const error = new Error(
-      "An error occurred while fetching the topics.",
-    ) as FetchError;
-    error.info = await res.json();
-    error.status = res.status;
-    throw error;
+  try {
+    if (!res.ok) {
+      const error = new Error(
+        "An error occurred while fetching the topics.",
+      ) as FetchError;
+      error.info = await res.json();
+      error.status = res.status;
+      throw error;
+    }
+
+    const data = await res.json();
+
+    return {
+      itemId: data.itemId,
+      voteCount: currentVoteCount.voteCount + 1,
+    };
+  } catch (error) {
+    return { error: error };
   }
-
-  const data = await res.json();
-
-  return {
-    itemId: data.itemId,
-    voteCount: currentVoteCount.voteCount + 1,
-  };
 };
 
 export const addVoteOptions = (currentVC: VoteCount): MutatorOptions => {
@@ -89,12 +92,24 @@ export const addTopic = async (newTopic: Topic) => {
   });
   const data = { name: newTopic.name, items: items };
 
-  const res = await fetch(TOPICS_API_ENDPOINT, {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
+  try {
+    const res = await fetch(TOPICS_API_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
 
-  return await res.json();
+    if (!res.ok) {
+      const error = new Error(
+        "An error occurred while creating a new topic.",
+      ) as FetchError;
+      error.info = await res.json();
+      error.status = res.status;
+      throw error;
+    }
+    return await res.json();
+  } catch (error) {
+    return { error: error };
+  }
 };
 
 export const addTopicOptions = (newTopic: Topic): MutatorOptions => {
@@ -110,16 +125,20 @@ export const deleteTopic = async (topicId: string) => {
     method: "DELETE",
   });
 
-  if (!res.ok) {
-    const error = new Error(
-      "An error occurred while deleting the topic.",
-    ) as FetchError;
-    error.info = await res.json();
-    error.status = res.status;
-    throw error;
-  }
+  try {
+    if (!res.ok) {
+      const error = new Error(
+        "An error occurred while deleting the topic.",
+      ) as FetchError;
+      error.info = await res.json();
+      error.status = res.status;
+      throw error;
+    }
 
-  return await res.json();
+    return await res.json();
+  } catch (error) {
+    return { error: error };
+  }
 };
 
 export const deleteTopicOptions = (topicIdToRemove: string): MutatorOptions => {
@@ -135,16 +154,20 @@ export const deleteTopicOptions = (topicIdToRemove: string): MutatorOptions => {
 export const getItems = async (topicId: string) => {
   const res = await fetch(`${TOPICS_API_ENDPOINT}/${topicId}/items`);
 
-  if (!res.ok) {
-    const error = new Error(
-      "An error occurred while fetching the items.",
-    ) as FetchError;
-    error.info = await res.json();
-    error.status = res.status;
-    throw error;
-  }
+  try {
+    if (!res.ok) {
+      const error = new Error(
+        "An error occurred while fetching the items.",
+      ) as FetchError;
+      error.info = await res.json();
+      error.status = res.status;
+      throw error;
+    }
 
-  return (await res.json()) as Item[];
+    return (await res.json()) as Item[];
+  } catch (error) {
+    return { error: error };
+  }
 };
 
 export const updateTopic = async (updatedTopic: Topic) => {
@@ -154,14 +177,18 @@ export const updateTopic = async (updatedTopic: Topic) => {
     body: JSON.stringify(data),
   });
 
-  if (!res.ok) {
-    const error = new Error(
-      "An error occurred while updating the topic.",
-    ) as FetchError;
-    error.info = await res.json();
-    error.status = res.status;
-    throw error;
-  }
+  try {
+    if (!res.ok) {
+      const error = new Error(
+        "An error occurred while updating the topic.",
+      ) as FetchError;
+      error.info = await res.json();
+      error.status = res.status;
+      throw error;
+    }
 
-  return await res.json();
+    return await res.json();
+  } catch (error) {
+    return { error: error };
+  }
 };

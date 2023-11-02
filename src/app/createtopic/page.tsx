@@ -1,22 +1,34 @@
-"use client";
 import React from "react";
+import TopicList from "@/app/components/TopicList/TopicList";
+import TempSignIn from "@/app/components/TempSignin/TempSignIn";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import CreateTopicForm from "@/app/components/CreateTopicForm/CreateTopicForm";
-import useSWR from "swr";
-import { getTopics } from "@/app/apicallers/topicApiCallers";
-import { TOPICS_API_ENDPOINT } from "@/app/config/paths";
 
-const CreateTopicPage = () => {
-  const {
-    isLoading,
-    error,
-    data: topics,
-    mutate,
-  } = useSWR(TOPICS_API_ENDPOINT, getTopics);
+const CreateTopicPage = async () => {
+  const session = await getServerSession(authOptions);
 
   return (
-    <div className="flex-col">
-      <h1>Create Topic Page</h1>
-      <CreateTopicForm mutateTopic={mutate} />
+    <div className="flex justify-center">
+      <div className=" w-2/3 flex justify-center">
+        <div>
+          <h1 className="font-black text-7xl text-secondary text-center">
+            Create A New Topic
+          </h1>
+          <div className="divider"></div>
+          <div className="">
+            {session?.user?.name ? (
+              <CreateTopicForm />
+            ) : (
+              <div>
+                <p>Please sign in to view topics</p>
+                <TempSignIn />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      {/*<CreateTopicForm mutateTopic={mutate} />*/}
     </div>
   );
 };
