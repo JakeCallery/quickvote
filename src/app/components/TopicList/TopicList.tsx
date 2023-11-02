@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   deleteTopic,
   deleteTopicOptions,
@@ -15,8 +15,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 import { TOPICS_API_ENDPOINT } from "@/app/config/paths";
-import { confirmAlert } from "react-confirm-alert";
-import "react-confirm-alert/src/react-confirm-alert.css";
 import { Topic } from "@/types/topic";
 
 const TopicList = () => {
@@ -29,28 +27,14 @@ const TopicList = () => {
     data: topics,
   } = useSWR(TOPICS_API_ENDPOINT, getTopics);
 
+  const [topicToDelete, setTopicToDelete] = useState<Topic>();
+
   const callDeleteTopic = async (topicId: string) => {
     try {
       await mutate(deleteTopic(topicId), deleteTopicOptions(topicId));
     } catch (error) {
       console.error("[JAC]Error: ", error);
     }
-  };
-
-  const handleDeleteTopicClick = (topic: Topic) => {
-    confirmAlert({
-      title: `Delete Topic: ${topic.name}`,
-      message: "Are you sure you want to delete this topic?",
-      buttons: [
-        {
-          label: "Yes",
-          onClick: () => callDeleteTopic(topic.id),
-        },
-        {
-          label: "No",
-        },
-      ],
-    });
   };
 
   let content;
@@ -69,7 +53,16 @@ const TopicList = () => {
           />
           <FontAwesomeIcon
             icon={faCircleXmark}
-            onClick={() => handleDeleteTopicClick(topic)}
+            onClick={() => {
+              if (document) {
+                setTopicToDelete(topic);
+                (
+                  document.getElementById(
+                    "delete_topic_modal",
+                  ) as HTMLFormElement
+                ).showModal();
+              }
+            }}
           />
           <FontAwesomeIcon
             icon={faEye}
@@ -85,6 +78,25 @@ const TopicList = () => {
       <p>Topics List</p>
       <ul>{content}</ul>
       <Link href="/createtopic">Create New Topic</Link>
+      <dialog id="delete_topic_modal" className="modal">
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">Permanently delete topic?</h3>
+          <p className="py-4">{topicToDelete?.name}</p>
+          <div className="modal-action">
+            <form method="dialog" className="flex-row space-x-2">
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  if (topicToDelete) callDeleteTopic(topicToDelete.id);
+                }}
+              >
+                Delete
+              </button>
+              <button className="btn btn-primary">Cancel</button>
+            </form>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 };
