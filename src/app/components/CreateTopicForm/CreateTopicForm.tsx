@@ -5,27 +5,39 @@ import { KeyedMutator } from "swr";
 import { addTopic, addTopicOptions } from "@/app/apicallers/topicApiCallers";
 import { Topic } from "@/types/topic";
 import { Item } from "@/types/item";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 const CreateTopicForm = ({
   mutateTopic,
 }: {
-  mutateTopic: KeyedMutator<Topic[]>;
+  mutateTopic?: KeyedMutator<Topic[]>;
 }) => {
   const log = useLogger();
+  const router = useRouter();
+
   const [nameText, setNameText] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [newItemText, setNewItemText] = useState("");
 
   const onCreateClick = async () => {
-    log.debug("Caught Create Click: ", { topicName: nameText });
+    // log.debug("Caught Create Click: ", { topicName: nameText });
     const newTopic = {
       id: Date.now().toString(),
       name: nameText,
       items: items,
     };
-    try {
-      await mutateTopic(addTopic(newTopic), addTopicOptions(newTopic));
-    } catch (err) {
-      console.error("Caught Error: ", err);
+    let res;
+    if (mutateTopic) {
+      res = await mutateTopic(addTopic(newTopic), addTopicOptions(newTopic));
+    } else {
+      res = await addTopic(newTopic);
+    }
+
+    if (!("error" in res)) {
+      router.push("/topics");
+    } else {
+      console.log("[JAC-ERROR]", res.error);
+      toast.error("Unable to add new topic");
     }
   };
 

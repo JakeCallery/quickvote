@@ -8,6 +8,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import Header from "@/app/Header";
 import Head from "next/head";
+import { Toaster } from "react-hot-toast";
 config.autoAddCss = false;
 
 const inter = Inter({ subsets: ["latin"] });
@@ -30,6 +31,7 @@ export default function RootLayout({
           <Header />
           {children}
         </AuthProvider>
+        <Toaster position="bottom-center" />
       </body>
     </html>
   );
