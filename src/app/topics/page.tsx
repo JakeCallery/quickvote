@@ -9,17 +9,23 @@ const TopicsPage = async () => {
 
   return (
     <div className="flex justify-center">
-      <div className="bg-green-500 w-1/2 flex justify-center">
-        <h1 className="font-black text-5xl text-secondary">TOPICS</h1>
-
-        {session?.user?.name ? (
-          <TopicList />
-        ) : (
-          <div>
-            <p>Please sign in to view topics</p>
-            <TempSignIn />
+      <div className=" w-2/3 flex justify-center">
+        <div>
+          <h1 className="font-black text-7xl text-secondary text-center">
+            TOPICS
+          </h1>
+          <div className="divider"></div>
+          <div className="">
+            {session?.user?.name ? (
+              <TopicList />
+            ) : (
+              <div>
+                <p>Please sign in to view topics</p>
+                <TempSignIn />
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
