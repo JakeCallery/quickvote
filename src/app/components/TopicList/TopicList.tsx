@@ -109,7 +109,7 @@ const TopicList = () => {
           <h3 className="font-bold text-lg">Permanently delete topic?</h3>
           <p className="py-4">{topicToDelete?.name}</p>
           <div className="modal-action">
-            <form method="dialog" className="flex-row space-x-2">
+            <form method="dialog" className="flex flex-row space-x-2">
               <button className="btn btn-primary">Cancel</button>
               <button
                 className="btn btn-primary"

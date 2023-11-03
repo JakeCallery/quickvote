@@ -7,6 +7,7 @@ const itemSchema = z.object({
 const schema = z.object({
   name: z.string().min(1),
   items: z.array(itemSchema),
+  invitedUsers: z.array(z.string().email()).optional(),
 });
 
 export default schema;

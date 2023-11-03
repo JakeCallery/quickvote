@@ -23,13 +23,24 @@ export async function GET(
 
   try {
     const topic = await prisma.topic.findUnique({
-      where: { id: params.id, userId: token.sub },
-      include: { items: true },
+      where: { id: params.id },
+      include: { items: true, invitedUsers: true },
     });
     if (!topic)
-      return NextResponse.json({ error: "topic not found" }, { status: 404 });
+      return NextResponse.json({ error: "Topic not found" }, { status: 404 });
 
-    return NextResponse.json(topic);
+    if (topic.userId === token.sub) {
+      return NextResponse.json(topic);
+    }
+
+    if (
+      topic.invitedUsers.find((invitedUser) => invitedUser.id === token.sub)
+    ) {
+      topic.invitedUsers = [];
+      return NextResponse.json(topic);
+    }
+
+    return NextResponse.json({ error: "Topic not found" }, { status: 404 });
   } catch (err: unknown) {
     if (
       err instanceof PrismaClientKnownRequestError ||

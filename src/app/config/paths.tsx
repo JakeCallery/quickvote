@@ -1,2 +1,2 @@
 export const TOPICS_API_ENDPOINT = "/api/topics";
-export const VOTES_API_ENDPOINT = "/api/votes";
+export const INVITED_TOPICS_API_ENDPOINT = "/api/invitedtopics";

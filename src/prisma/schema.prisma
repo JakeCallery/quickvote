@@ -1,6 +1,10 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// TODO: Check things work if user is deleted that has voted on things
+//  Currently if a user is deleted, their topics are deleted as well
+//  However their votes should remain on other users' topics
+
 datasource db {
   provider     = "mysql"
   url          = env("DATABASE_URL")
@@ -49,9 +53,10 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-  topics        Topic[]
+  topics        Topic[]   @relation("OwnedTopics")
   items         Item[]
   Vote          Vote[]
+  invitedTopics Topic[]   @relation("InvitedTopics")
 }
 
 model VerificationToken {
@@ -63,13 +68,14 @@ model VerificationToken {
 }
 
 model Topic {
-  id     String  @id @default(cuid())
-  name   String
-  User   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String
-  items  Item[]
-  isOpen Boolean @default(true)
-  Vote   Vote[]
+  id           String  @id @default(cuid())
+  name         String
+  User         User    @relation("OwnedTopics", fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  items        Item[]
+  isOpen       Boolean @default(true)
+  Vote         Vote[]
+  invitedUsers User[]  @relation("InvitedTopics")
 
   @@index([userId])
 }
@@ -89,8 +95,8 @@ model Item {
 
 model Vote {
   id            String   @id @default(cuid())
-  Owner         User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId       String
+  Owner         User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  ownerId       String?
   Item          Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId        String
   Topic         Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
