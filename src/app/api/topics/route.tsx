@@ -9,6 +9,8 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from "@prisma/client/runtime/library";
+import { InvitedUser } from "@/types/invitedUser";
+import { User } from "next-auth";
 export async function GET(req: NextRequest) {
   const token = await getToken({ req: req });
 
@@ -55,7 +57,40 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  //Find users by email address
+  let invitedUsers = [];
   try {
+    invitedUsers = await prisma.user.findMany({
+      where: {
+        email: { in: body.invitedUsers },
+      },
+    });
+  } catch (err: unknown) {
+    if (
+      err instanceof PrismaClientKnownRequestError ||
+      err instanceof PrismaClientUnknownRequestError
+    ) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    } else if (
+      err instanceof PrismaClientRustPanicError ||
+      err instanceof PrismaClientInitializationError
+    ) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    } else {
+      return NextResponse.json({ error: err }, { status: 500 });
+    }
+  }
+
+  try {
+    const usersToConnect =
+      invitedUsers
+        ?.filter((invitedUser) => {
+          return invitedUser.id !== token.sub;
+        })
+        .map((invitedUser) => {
+          return { id: invitedUser.id };
+        }) || [];
+
     const newTopic = await prisma.topic.create({
       data: {
         name: body.name,
@@ -65,8 +100,12 @@ export async function POST(req: NextRequest) {
             return { name: item.name, userId: token.sub };
           }),
         },
+        invitedUsers: {
+          connect: usersToConnect,
+        },
       },
     });
+    console.log("New Topic: ", newTopic);
     return NextResponse.json(newTopic, { status: 201 });
   } catch (err: unknown) {
     if (

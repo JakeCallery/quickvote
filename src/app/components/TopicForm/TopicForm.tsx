@@ -42,6 +42,8 @@ const TopicForm = ({
   };
 
   const onAddInvitedUserClick = () => {
+    //TODO: Validate it is a valid email address
+    // Toast if not
     topicInvitedUsers.push({
       email: newInvitedUserEmail,
       userId: Date.now().toString(),
