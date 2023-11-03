@@ -1,7 +1,10 @@
 import { Topic } from "@/types/topic";
 import { MutatorOptions } from "swr";
 import { Item } from "@/types/item";
-import { TOPICS_API_ENDPOINT } from "@/app/config/paths";
+import {
+  INVITED_TOPICS_API_ENDPOINT,
+  TOPICS_API_ENDPOINT,
+} from "@/app/config/paths";
 import { VoteCount } from "@/types/voteCount";
 
 export const getTopics = async () => {
@@ -17,6 +20,25 @@ export const getTopics = async () => {
   }
 
   return (await res.json()) as Topic[];
+};
+
+export const getInvitedTopics = async () => {
+  try {
+    const res = await fetch(INVITED_TOPICS_API_ENDPOINT);
+
+    if (!res.ok) {
+      const error = new Error(
+        "An error occurred while fetching the invited topics.",
+      ) as FetchError;
+      error.info = await res.json();
+      error.status = res.status;
+      throw error;
+    }
+
+    return (await res.json()) as Topic[];
+  } catch (error) {
+    return { error: error };
+  }
 };
 
 export const getVotesForTopic = async (url: string) => {
