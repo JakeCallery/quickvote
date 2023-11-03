@@ -41,7 +41,7 @@ const TopicVote = ({ topic }: { topic: Topic }) => {
   };
 
   return (
-    <div className="flex-col space-y-2">
+    <div className="flex flex-col space-y-2">
       {topic.items.map((item) => {
         return (
           <div className="flex space-x-2 items-center" key={item.id}>

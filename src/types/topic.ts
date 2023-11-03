@@ -1,4 +1,5 @@
 import { Item } from "@/types/item";
+import { InvitedUser } from "@/types/invitedUser";
 
 export type Topic = {
   id: string;
@@ -6,4 +7,5 @@ export type Topic = {
   items: Item[];
   isOpen?: boolean;
   userId?: string;
+  invitedUsers?: InvitedUser[];
 };
