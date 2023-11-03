@@ -9,8 +9,7 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from "@prisma/client/runtime/library";
-import { InvitedUser } from "@/types/invitedUser";
-import { User } from "next-auth";
+
 export async function GET(req: NextRequest) {
   const token = await getToken({ req: req });
 

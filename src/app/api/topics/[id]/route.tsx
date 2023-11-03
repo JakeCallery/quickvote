@@ -21,17 +21,26 @@ export async function GET(
     return NextResponse.json({ error: "User not logged in." }, { status: 401 });
   }
 
-  //TODO: If owner of topic, return invited users in addition to the items
-  // Also return topic if user is on the invited users list
   try {
     const topic = await prisma.topic.findUnique({
-      where: { id: params.id, userId: token.sub },
-      include: { items: true },
+      where: { id: params.id },
+      include: { items: true, invitedUsers: true },
     });
     if (!topic)
-      return NextResponse.json({ error: "topic not found" }, { status: 404 });
-    console.log("Topic with invited users: ", topic);
-    return NextResponse.json(topic);
+      return NextResponse.json({ error: "Topic not found" }, { status: 404 });
+
+    if (topic.userId === token.sub) {
+      return NextResponse.json(topic);
+    }
+
+    if (
+      topic.invitedUsers.find((invitedUser) => invitedUser.id === token.sub)
+    ) {
+      topic.invitedUsers = [];
+      return NextResponse.json(topic);
+    }
+
+    return NextResponse.json({ error: "Topic not found" }, { status: 404 });
   } catch (err: unknown) {
     if (
       err instanceof PrismaClientKnownRequestError ||
