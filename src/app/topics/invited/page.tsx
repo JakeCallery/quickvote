@@ -1,10 +1,10 @@
 import React from "react";
+import TempSignIn from "@/app/components/TempSignin/TempSignIn";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import TempSignIn from "@/app/components/TempSignin/TempSignIn";
-import TopicList from "@/app/components/TopicList/TopicList";
+import InvitedTopicList from "@/app/topics/invited/components/InvitedTopicList/InvitedTopicList";
 
-const TopicsPage = async () => {
+const TopicsInvitedToPage = async () => {
   const session = await getServerSession(authOptions);
 
   return (
@@ -12,12 +12,12 @@ const TopicsPage = async () => {
       <div className=" w-2/3 flex justify-center">
         <div>
           <h1 className="font-black text-7xl text-secondary text-center">
-            MY TOPICS
+            TOPICS TO VOTE ON
           </h1>
           <div className="divider"></div>
           <div className="">
             {session?.user?.name ? (
-              <TopicList />
+              <InvitedTopicList />
             ) : (
               <div>
                 <p>Please sign in to view topics</p>
@@ -31,4 +31,4 @@ const TopicsPage = async () => {
   );
 };
 
-export default TopicsPage;
+export default TopicsInvitedToPage;
