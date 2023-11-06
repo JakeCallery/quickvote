@@ -3,6 +3,10 @@ import { Topic } from "@/types/topic";
 import { Item } from "@/types/item";
 import { InvitedUser } from "@/types/invitedUser";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
+import toast from "react-hot-toast";
+
+const emailSchema = z.string().email();
 
 const TopicForm = ({
   topic,
@@ -48,13 +52,15 @@ const TopicForm = ({
   };
 
   const onAddInvitedUserClick = () => {
-    //TODO: Validate it is a valid email address
-    // Toast if not
-    topicInvitedUsers.push({
-      email: newInvitedUserEmail,
-      id: Date.now().toString(),
-    });
-    setNewInvitedUserEmail("");
+    if (emailSchema.safeParse(newInvitedUserEmail).success) {
+      topicInvitedUsers.push({
+        email: newInvitedUserEmail,
+        id: Date.now().toString(),
+      });
+      setNewInvitedUserEmail("");
+    } else {
+      toast.error("Invalid email address format");
+    }
   };
 
   const onSaveChangesClick = () => {
