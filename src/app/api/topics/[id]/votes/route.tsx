@@ -20,14 +20,23 @@ export async function GET(
   }
 
   try {
-    //TODO: Verify that user is on the invited users list
     const topic = await prisma.topic.findUnique({
       where: { id: params.id },
-      include: { items: true },
+      include: { items: true, invitedUsers: true },
     });
 
     if (!topic)
       return NextResponse.json({ error: "topic not found" }, { status: 404 });
+
+    if (
+      !(topic.userId === token.sub) &&
+      !topic.invitedUsers.find((invitedUser) => invitedUser.id === token.sub)
+    ) {
+      return NextResponse.json(
+        { error: "User not invited to topic" },
+        { status: 404 },
+      );
+    }
 
     const countsResponse: { counts: VoteCount[] } = {
       counts: [],
@@ -72,11 +81,27 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  //TODO: Restrict to only invited users list
-
   const token = await getToken({ req: req });
   if (!token) {
     return NextResponse.json({ error: "User not logged in." }, { status: 401 });
+  }
+
+  const topic = await prisma.topic.findUnique({
+    where: { id: params.id },
+    include: { items: true, invitedUsers: true },
+  });
+
+  if (!topic)
+    return NextResponse.json({ error: "topic not found" }, { status: 404 });
+
+  if (
+    !(topic.userId === token.sub) &&
+    !topic.invitedUsers.find((invitedUser) => invitedUser.id === token.sub)
+  ) {
+    return NextResponse.json(
+      { error: "User not invited to topic" },
+      { status: 404 },
+    );
   }
 
   const body = await req.json();
