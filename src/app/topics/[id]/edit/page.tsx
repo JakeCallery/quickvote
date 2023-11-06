@@ -38,6 +38,7 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
       headers: {
         Cookie: cookie!,
       },
+      cache: "no-cache",
     },
   );
 
@@ -65,6 +66,7 @@ const EditTopicPage = async ({ params }: { params: { id: string } }) => {
   }
 
   const topic = (await res.json()) as Topic;
+
   return (
     <div className="flex justify-center">
       <div className=" w-2/3 flex justify-center">
