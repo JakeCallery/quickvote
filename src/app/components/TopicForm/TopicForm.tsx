@@ -2,18 +2,24 @@ import React, { FormEvent, useState } from "react";
 import { Topic } from "@/types/topic";
 import { Item } from "@/types/item";
 import { InvitedUser } from "@/types/invitedUser";
+import { useRouter } from "next/navigation";
 
 const TopicForm = ({
   topic,
   commitChanges,
   commitChangesButtonText,
   resetButtonText = "Reset Changes",
+  cancelButtonText = "Cancel",
+  committingChanges,
 }: {
   topic?: Topic;
   commitChanges: (topic: Topic) => {};
   commitChangesButtonText: string;
   resetButtonText?: string;
+  cancelButtonText?: string;
+  committingChanges: boolean;
 }) => {
+  const router = useRouter();
   const [topicName, setTopicName] = useState(topic?.name || "");
   const [topicItems, setTopicItems] = useState<Item[]>(
     topic?.items.map((item) => ({ name: item.name, id: item.id })) || [],
@@ -307,7 +313,12 @@ const TopicForm = ({
           className="btn btn-primary"
           onClick={onSaveChangesClick}
           disabled={
-            !(topicName && topicName.trim().length > 0 && topicItems.length > 0)
+            !(
+              topicName &&
+              topicName.trim().length > 0 &&
+              topicItems.length > 0 &&
+              !committingChanges
+            )
           }
         >
           {commitChangesButtonText}
@@ -318,6 +329,10 @@ const TopicForm = ({
             {resetButtonText}
           </button>
         )}
+        <div className="flex-grow"></div>
+        <button className="btn btn-secondary" onClick={() => router.back()}>
+          {cancelButtonText}
+        </button>
       </div>
     </div>
   );

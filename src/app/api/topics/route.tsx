@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
         },
       },
     });
-    console.log("New Topic: ", newTopic);
+
     return NextResponse.json(newTopic, { status: 201 });
   } catch (err: unknown) {
     if (

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Topic } from "@/types/topic";
 import { updateTopic } from "@/app/apicallers/topicApiCallers";
 import toast from "react-hot-toast";
@@ -8,8 +8,9 @@ import { useRouter } from "next/navigation";
 
 const EditTopicForm = ({ topic }: { topic: Topic }) => {
   const router = useRouter();
-
+  const [isCommittingChanges, setIsCommittingChanges] = useState(false);
   const saveChanges = async (updatedTopic: Topic) => {
+    setIsCommittingChanges(true);
     try {
       const resData = await updateTopic(updatedTopic);
       //TODO: Find a way to update the local cache instead of a full refresh of the topics
@@ -19,10 +20,12 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
       } else {
         console.log("[JAC-ERROR]", resData.error);
         toast.error("Unable to save changes to topic.");
+        setIsCommittingChanges(false);
       }
     } catch (err) {
       console.error("[JAC-ERROR]", err);
       toast.error("Unable to save changes to topic.");
+      setIsCommittingChanges(false);
     }
   };
 
@@ -31,6 +34,7 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
       topic={topic}
       commitChanges={saveChanges}
       commitChangesButtonText="Save Changes"
+      committingChanges={isCommittingChanges}
     />
   );
 };

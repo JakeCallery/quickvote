@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { KeyedMutator } from "swr";
 import { addTopic, addTopicOptions } from "@/app/apicallers/topicApiCallers";
 import { Topic } from "@/types/topic";
@@ -13,7 +13,10 @@ const CreateTopicForm = ({
 }) => {
   const router = useRouter();
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const createTopic = async (newTopic: Topic) => {
+    setIsSaving(true);
     let res;
     if (mutateTopic) {
       res = await mutateTopic(addTopic(newTopic), addTopicOptions(newTopic));
@@ -26,6 +29,7 @@ const CreateTopicForm = ({
     } else {
       console.log("[JAC-ERROR]", res.error);
       toast.error("Unable to add new topic");
+      setIsSaving(false);
     }
   };
 
@@ -33,6 +37,7 @@ const CreateTopicForm = ({
     <TopicForm
       commitChanges={createTopic}
       commitChangesButtonText="Create Topic"
+      committingChanges={isSaving}
     />
   );
 };
