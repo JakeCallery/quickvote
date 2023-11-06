@@ -10,6 +10,7 @@ import {
   PrismaClientUnknownRequestError,
 } from "@prisma/client/runtime/library";
 import { Topic } from "@/types/topic";
+import { InvitedUser } from "@/types/invitedUser";
 
 export async function GET(
   req: NextRequest,
@@ -118,7 +119,7 @@ export async function PUT(
   try {
     topic = (await prisma.topic.findUnique({
       where: { id: params.id, userId: token.sub },
-      include: { items: true },
+      include: { items: true, invitedUsers: true },
     })) as Topic;
   } catch (err: any) {
     if (err instanceof PrismaClientKnownRequestError) {
@@ -214,6 +215,66 @@ export async function PUT(
       }),
     );
   });
+
+  //add additional invited users
+  const invitedUsersEmailToAdd =
+    body.invitedUsers.filter((bodyInvitedUserEmail: string) => {
+      return !topic.invitedUsers?.find((topicInvitedUser) => {
+        return topicInvitedUser.email === bodyInvitedUserEmail;
+      });
+    }) || [];
+
+  const invitedUsersToAdd =
+    (await prisma.user.findMany({
+      where: {
+        email: { in: invitedUsersEmailToAdd },
+      },
+    })) || [];
+
+  const invitedUserIdsToAdd = invitedUsersToAdd.map((invitedUserToAdd) => {
+    return { id: invitedUserToAdd.id };
+  });
+
+  if (invitedUserIdsToAdd) {
+    steps.push(
+      prisma.topic.update({
+        where: { id: topic.id },
+        data: {
+          invitedUsers: {
+            connect: invitedUserIdsToAdd,
+          },
+        },
+      }),
+    );
+  }
+
+  //remove missing from body invited users
+  const invitedUsersEmailToRemove = topic.invitedUsers?.filter(
+    (topicInvitedUser) => {
+      return !body.invitedUsers.find(
+        (bodyInvitedUserEmail: string) =>
+          bodyInvitedUserEmail === topicInvitedUser.email,
+      );
+    },
+  );
+
+  const invitedUsersToRemove =
+    topic.invitedUsers?.filter((topicInvitedUser) => {
+      return invitedUsersEmailToRemove?.find((invitedUserEmailToRemove) => {
+        return topicInvitedUser.email === invitedUserEmailToRemove.email;
+      });
+    }) || [];
+
+  steps.push(
+    prisma.topic.update({
+      where: { id: topic.id },
+      data: {
+        invitedUsers: {
+          disconnect: invitedUsersToRemove,
+        },
+      },
+    }),
+  );
 
   //commit changes
   try {

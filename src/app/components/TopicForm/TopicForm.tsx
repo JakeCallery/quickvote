@@ -21,7 +21,7 @@ const TopicForm = ({
   const [topicInvitedUsers, setTopicInvitedUsers] = useState<InvitedUser[]>(
     topic?.invitedUsers?.map((invitedUser) => ({
       email: invitedUser.email,
-      id: invitedUser.userId,
+      id: invitedUser.id,
     })) || [],
   );
 
@@ -46,7 +46,7 @@ const TopicForm = ({
     // Toast if not
     topicInvitedUsers.push({
       email: newInvitedUserEmail,
-      userId: Date.now().toString(),
+      id: Date.now().toString(),
     });
     setNewInvitedUserEmail("");
   };
@@ -79,7 +79,7 @@ const TopicForm = ({
       setTopicInvitedUsers(
         topic.invitedUsers?.map((invitedUser) => ({
           email: invitedUser.email,
-          id: invitedUser.userId,
+          id: invitedUser.id,
         })) || [],
       );
     }
@@ -91,7 +91,7 @@ const TopicForm = ({
 
   const deleteInvitedUser = (userToRemove: InvitedUser) => {
     setTopicInvitedUsers(
-      topicInvitedUsers.filter((user) => user.userId !== userToRemove.userId),
+      topicInvitedUsers.filter((user) => user.id !== userToRemove.id),
     );
   };
 
@@ -205,13 +205,13 @@ const TopicForm = ({
               return (
                 <li
                   className={`mb-2 border pl-2 ${
-                    invitedUserToEdit?.userId !== invitedUser.userId
+                    invitedUserToEdit?.id !== invitedUser.id
                       ? "hover:bg-base-300"
                       : ""
                   }`}
-                  key={invitedUser.userId}
+                  key={invitedUser.id}
                 >
-                  {invitedUserToEdit?.userId !== invitedUser.userId ? (
+                  {invitedUserToEdit?.id !== invitedUser.id ? (
                     <div className="flex flex-row space-x-2 items-center">
                       <span className="text-2xl text-secondary-content-content font-medium grow">
                         {invitedUser.email}

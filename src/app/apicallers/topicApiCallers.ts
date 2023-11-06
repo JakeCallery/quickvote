@@ -201,7 +201,12 @@ export const getItems = async (topicId: string) => {
 };
 
 export const updateTopic = async (updatedTopic: Topic) => {
-  const data = { name: updatedTopic.name, items: updatedTopic.items };
+  const data = {
+    name: updatedTopic.name,
+    items: updatedTopic.items,
+    invitedUsers:
+      updatedTopic.invitedUsers?.map((invitedUser) => invitedUser.email) || [],
+  };
   const res = await fetch(`${TOPICS_API_ENDPOINT}/${updatedTopic.id}`, {
     method: "PUT",
     body: JSON.stringify(data),

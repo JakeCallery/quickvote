@@ -1,4 +1,4 @@
 export type InvitedUser = {
   email: string;
-  userId?: string;
+  id?: string;
 };
