@@ -12,9 +12,10 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
   const saveChanges = async (updatedTopic: Topic) => {
     try {
       const resData = await updateTopic(updatedTopic);
-
+      //TODO: Find a way to update the local cache instead of a full refresh of the topics
+      router.refresh();
       if (!("error" in resData)) {
-        await router.push("/topics");
+        router.push("/topics");
       } else {
         console.log("[JAC-ERROR]", resData.error);
         toast.error("Unable to save changes to topic.");
