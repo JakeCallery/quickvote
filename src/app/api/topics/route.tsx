@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma/db";
-import schema from "@/app/api/topics/schema";
+import topicSchema from "@/app/api/topics/topicSchema";
 import { getToken } from "next-auth/jwt";
 import { Item } from "@/types/item";
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-} from "@prisma/client/runtime/library";
+import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
+import { validateTokenAndBody } from "@/app/helpers/apiValidation";
 
 export async function GET(req: NextRequest) {
   const token = await getToken({ req: req });
@@ -23,38 +19,20 @@ export async function GET(req: NextRequest) {
     });
     return NextResponse.json(topics);
   } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 }
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req: req });
+  const { token, parsedBody, errorResponse } = await validateTokenAndBody(
+    req,
+    topicSchema,
+  );
 
-  if (!token) {
-    return NextResponse.json({ error: "User not logged in." }, { status: 401 });
-  }
+  if (errorResponse) return errorResponse;
 
-  const body = await req.json();
-  const validation = schema.safeParse(body);
-
-  if (!validation.success) {
-    return NextResponse.json(
-      { error: validation.error.errors },
-      { status: 400 },
-    );
-  }
+  //TODO: Properly type this
+  const body = parsedBody;
 
   //Find users by email address
   let invitedUsers = [];
@@ -64,21 +42,11 @@ export async function POST(req: NextRequest) {
         email: { in: body.invitedUsers },
       },
     });
-  } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+  } catch (err: any) {
+    return handlePrismaError(req, err, token);
   }
+
+  //TODO: If invitedUsers is empty, but requested invited users is not, warn user
 
   try {
     const usersToConnect =
@@ -104,21 +72,8 @@ export async function POST(req: NextRequest) {
         },
       },
     });
-
     return NextResponse.json(newTopic, { status: 201 });
   } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 }

@@ -1,5 +1,4 @@
 import React from "react";
-import TopicList from "@/app/components/TopicList/TopicList";
 import TempSignIn from "@/app/components/TempSignin/TempSignIn";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -28,7 +27,6 @@ const CreateTopicPage = async () => {
           </div>
         </div>
       </div>
-      {/*<CreateTopicForm mutateTopic={mutate} />*/}
     </div>
   );
 };

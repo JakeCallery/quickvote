@@ -9,6 +9,8 @@ import {
   addVoteOptions,
   getVotesForTopic,
 } from "@/app/apicallers/topicApiCallers";
+import toast from "react-hot-toast";
+import { getFetchErrorMessage } from "@/app/helpers/clientSideErrorHandling";
 
 const TopicVote = ({ topic }: { topic: Topic }) => {
   const {
@@ -28,10 +30,23 @@ const TopicVote = ({ topic }: { topic: Topic }) => {
     const currentVC = voteCounts?.find((vc) => vc.itemId === item.id);
     if (currentVC) {
       setIsVoteDisabled(true);
-      await mutate(
-        addVote(item.id!, topic.id, currentVC),
-        addVoteOptions(currentVC),
-      );
+      try {
+        await mutate(
+          addVote(item.id!, topic.id, currentVC),
+          addVoteOptions(currentVC),
+        );
+      } catch (error) {
+        const thisError = error as FetchError;
+        console.error(
+          "[JAC-ERROR]",
+          thisError.message,
+          thisError.originalErrorMessage,
+          thisError.status,
+        );
+        toast.error(
+          `${getFetchErrorMessage(error)}: ${thisError.originalErrorMessage}`,
+        );
+      }
       setIsVoteDisabled(false);
     }
   };
@@ -40,36 +55,51 @@ const TopicVote = ({ topic }: { topic: Topic }) => {
     console.log("Minus Click: ", item.id);
   };
 
-  return (
-    <div className="flex flex-col space-y-2">
-      {topic.items.map((item) => {
-        return (
-          <div className="flex space-x-2 items-center" key={item.id}>
-            <div className="flex space-x-2">
-              <button
-                className="btn btn-circle btn-primary"
-                onClick={() => onPlusVoteClick(item)}
-                disabled={isVoteDisabled}
-              >
-                <span className="text-2xl font-bold">+</span>
-              </button>
-              <button
-                className="btn btn-circle btn-primary"
-                onClick={() => onMinusVoteClick(item)}
-                disabled={isVoteDisabled || true}
-              >
-                <span className="text-2xl font-bold">-</span>
-              </button>
+  let content;
+  if (isLoading) {
+    content = <p>Loading...</p>;
+  } else if (error) {
+    content = (
+      <p>{`${error.message}${
+        error.originalErrorMessage && error.originalErrorMessage !== ""
+          ? ": " + error.originalErrorMessage
+          : "."
+      }`}</p>
+    );
+  } else {
+    content = (
+      <div className="flex flex-col space-y-2">
+        {topic.items.map((item) => {
+          return (
+            <div className="flex space-x-2 items-center" key={item.id}>
+              <div className="flex space-x-2">
+                <button
+                  className="btn btn-circle btn-primary"
+                  onClick={() => onPlusVoteClick(item)}
+                  disabled={isVoteDisabled}
+                >
+                  <span className="text-2xl font-bold">+</span>
+                </button>
+                <button
+                  className="btn btn-circle btn-primary"
+                  onClick={() => onMinusVoteClick(item)}
+                  disabled={isVoteDisabled || true}
+                >
+                  <span className="text-2xl font-bold">-</span>
+                </button>
+              </div>
+              <p className="text-xl font-semibold flex-grow">{item.name}</p>
+              <p className="">
+                {voteCounts?.find((vc) => vc.itemId === item.id)?.voteCount}
+              </p>
             </div>
-            <p className="text-xl font-semibold flex-grow">{item.name}</p>
-            <p className="">
-              {voteCounts?.find((vc) => vc.itemId === item.id)?.voteCount}
-            </p>
-          </div>
-        );
-      })}
-    </div>
-  );
+          );
+        })}
+      </div>
+    );
+  }
+
+  return content;
 };
 
 export default TopicVote;

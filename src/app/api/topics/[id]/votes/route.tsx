@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-} from "@prisma/client/runtime/library";
 import prisma from "@/prisma/db";
 import { VoteCount } from "@/types/voteCount";
 import { z } from "zod";
+import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
@@ -58,19 +53,7 @@ export async function GET(
 
     return NextResponse.json(countsResponse, { status: 200 });
   } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 }
 
@@ -124,18 +107,6 @@ export async function POST(
     });
     return NextResponse.json(newVote, { status: 201 });
   } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 }
