@@ -6,51 +6,69 @@ import {
   TOPICS_API_ENDPOINT,
 } from "@/app/config/paths";
 import { VoteCount } from "@/types/voteCount";
+import {
+  createClientSideFetchError,
+  createClientSideUnknownError,
+} from "@/app/helpers/clientSideErrorHandling";
 
 export const getTopics = async () => {
-  const res = await fetch(TOPICS_API_ENDPOINT);
+  let res;
+  try {
+    res = await fetch(TOPICS_API_ENDPOINT);
+  } catch (error) {
+    throw createClientSideUnknownError(
+      error,
+      "Unknown error occurred while fetching the topics",
+    );
+  }
 
   if (!res.ok) {
-    const error = new Error(
-      "An error occurred while fetching the topics.",
-    ) as FetchError;
-    error.info = await res.json();
-    error.status = res.status;
-    throw error;
+    throw await createClientSideFetchError(
+      res,
+      "An error occurred while fetching the topics",
+    );
   }
 
   return (await res.json()) as Topic[];
 };
 
 export const getInvitedTopics = async () => {
+  let res;
   try {
-    const res = await fetch(INVITED_TOPICS_API_ENDPOINT);
-
-    if (!res.ok) {
-      const error = new Error(
-        "An error occurred while fetching the invited topics.",
-      ) as FetchError;
-      error.info = await res.json();
-      error.status = res.status;
-      throw error;
-    }
-
-    return (await res.json()) as Topic[];
+    res = await fetch(INVITED_TOPICS_API_ENDPOINT);
   } catch (error) {
-    return { error: error };
+    throw createClientSideUnknownError(
+      error,
+      "Unknown error occurred while fetching the invited topics.",
+    );
   }
+
+  if (!res.ok) {
+    throw await createClientSideFetchError(
+      res,
+      "An error occurred while fetching the invited topics.",
+    );
+  }
+
+  return (await res.json()) as Topic[];
 };
 
 export const getVotesForTopic = async (url: string) => {
-  const res = await fetch(url);
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (error) {
+    throw createClientSideUnknownError(
+      error,
+      "Unknown error occurred while fetching the votes.",
+    );
+  }
 
   if (!res.ok) {
-    const error = new Error(
-      "An error occurred while fetching the topics.",
-    ) as FetchError;
-    error.info = await res.json();
-    error.status = res.status;
-    throw error;
+    throw await createClientSideFetchError(
+      res,
+      "An error occurred while fetching the votes.",
+    );
   }
 
   const data = await res.json();
@@ -62,30 +80,31 @@ export const addVote = async (
   topicId: string,
   currentVoteCount: VoteCount,
 ): Promise<any> => {
-  const res = await fetch(`${TOPICS_API_ENDPOINT}/${topicId}/votes`, {
-    method: "POST",
-    body: JSON.stringify({ itemId: itemId }),
-  });
-
+  let res;
   try {
-    if (!res.ok) {
-      const error = new Error(
-        "An error occurred while fetching the topics.",
-      ) as FetchError;
-      error.info = await res.json();
-      error.status = res.status;
-      throw error;
-    }
-
-    const data = await res.json();
-
-    return {
-      itemId: data.itemId,
-      voteCount: currentVoteCount.voteCount + 1,
-    };
+    res = await fetch(`${TOPICS_API_ENDPOINT}/${topicId}/votes`, {
+      method: "POST",
+      body: JSON.stringify({ itemId: itemId }),
+    });
   } catch (error) {
-    return { error: error };
+    throw createClientSideUnknownError(
+      error,
+      "Unknown error occurred while adding a vote",
+    );
   }
+  if (!res.ok) {
+    throw await createClientSideFetchError(
+      res,
+      "An error occurred while adding a vote",
+    );
+  }
+
+  const data = await res.json();
+
+  return {
+    itemId: data.itemId,
+    voteCount: currentVoteCount.voteCount + 1,
+  };
 };
 
 export const addVoteOptions = (currentVC: VoteCount): MutatorOptions => {
@@ -122,24 +141,25 @@ export const addTopic = async (newTopic: Topic) => {
     invitedUsers: emailAddresses,
   };
 
+  let res;
   try {
-    const res = await fetch(TOPICS_API_ENDPOINT, {
+    res = await fetch(TOPICS_API_ENDPOINT, {
       method: "POST",
       body: JSON.stringify(data),
     });
-
-    if (!res.ok) {
-      const fetchError = new Error(
-        "An error occurred while creating a new topic.",
-      ) as FetchError;
-      fetchError.info = await res.json();
-      fetchError.status = res.status;
-      return { error: fetchError };
-    }
-    return await res.json();
   } catch (error) {
-    return { error: new Error("Unknown error occurred while creating topic.") };
+    throw createClientSideUnknownError(
+      error,
+      "Unknown error occurred while creating new topic",
+    );
   }
+  if (!res.ok) {
+    throw await createClientSideFetchError(
+      res,
+      "An error occurred while creating the topic",
+    );
+  }
+  return await res.json();
 };
 
 export const addTopicOptions = (newTopic: Topic): MutatorOptions => {
@@ -151,24 +171,25 @@ export const addTopicOptions = (newTopic: Topic): MutatorOptions => {
 };
 
 export const deleteTopic = async (topicId: string) => {
-  const res = await fetch(`${TOPICS_API_ENDPOINT}/${topicId}`, {
-    method: "DELETE",
-  });
-
+  let res;
   try {
-    if (!res.ok) {
-      const error = new Error(
-        "An error occurred while deleting the topic.",
-      ) as FetchError;
-      error.info = await res.json();
-      error.status = res.status;
-      throw error;
-    }
-
-    return await res.json();
+    res = await fetch(`${TOPICS_API_ENDPOINT}/${topicId}`, {
+      method: "DELETE",
+    });
   } catch (error) {
-    return { error: error };
+    throw createClientSideUnknownError(
+      error,
+      "Unknown error occurred while deleting a topic",
+    );
   }
+  if (!res.ok) {
+    throw await createClientSideFetchError(
+      res,
+      "An error occurred while deleting a topic",
+    );
+  }
+
+  return await res.json();
 };
 
 export const deleteTopicOptions = (topicIdToRemove: string): MutatorOptions => {
@@ -182,22 +203,23 @@ export const deleteTopicOptions = (topicIdToRemove: string): MutatorOptions => {
 };
 
 export const getItems = async (topicId: string) => {
-  const res = await fetch(`${TOPICS_API_ENDPOINT}/${topicId}/items`);
-
+  let res;
   try {
-    if (!res.ok) {
-      const error = new Error(
-        "An error occurred while fetching the items.",
-      ) as FetchError;
-      error.info = await res.json();
-      error.status = res.status;
-      throw error;
-    }
-
-    return (await res.json()) as Item[];
+    res = await fetch(`${TOPICS_API_ENDPOINT}/${topicId}/items`);
   } catch (error) {
-    return { error: error };
+    throw createClientSideUnknownError(
+      error,
+      "Unknown error occurred while fetching the items",
+    );
   }
+  if (!res.ok) {
+    throw await createClientSideFetchError(
+      res,
+      "An error occurred while fetching the items",
+    );
+  }
+
+  return (await res.json()) as Item[];
 };
 
 export const updateTopic = async (updatedTopic: Topic) => {
@@ -207,23 +229,25 @@ export const updateTopic = async (updatedTopic: Topic) => {
     invitedUsers:
       updatedTopic.invitedUsers?.map((invitedUser) => invitedUser.email) || [],
   };
-  const res = await fetch(`${TOPICS_API_ENDPOINT}/${updatedTopic.id}`, {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
 
+  let res;
   try {
-    if (!res.ok) {
-      const error = new Error(
-        "An error occurred while updating the topic.",
-      ) as FetchError;
-      error.info = await res.json();
-      error.status = res.status;
-      throw error;
-    }
-
-    return await res.json();
+    res = await fetch(`${TOPICS_API_ENDPOINT}/${updatedTopic.id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
   } catch (error) {
-    return { error: error };
+    throw createClientSideUnknownError(
+      error,
+      "Unknown error occurred while updating the topic",
+    );
   }
+  if (!res.ok) {
+    throw await createClientSideFetchError(
+      res,
+      "An error occurred while updating the topic",
+    );
+  }
+
+  return await res.json();
 };

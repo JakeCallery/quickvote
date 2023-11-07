@@ -3,14 +3,8 @@ import prisma from "@/prisma/db";
 import schema from "@/app/api/topics/schema";
 import { getToken } from "next-auth/jwt";
 import { Item } from "@/types/item";
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-} from "@prisma/client/runtime/library";
 import { Topic } from "@/types/topic";
-import { InvitedUser } from "@/types/invitedUser";
+import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
 
 export async function GET(
   req: NextRequest,
@@ -43,19 +37,7 @@ export async function GET(
 
     return NextResponse.json({ error: "Topic not found" }, { status: 404 });
   } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 }
 
@@ -82,17 +64,7 @@ export async function DELETE(
 
     return NextResponse.json(topic, { status: 200 });
   } catch (err: any) {
-    if (err instanceof PrismaClientKnownRequestError) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientUnknownRequestError ||
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 }
 
@@ -122,21 +94,11 @@ export async function PUT(
       include: { items: true, invitedUsers: true },
     })) as Topic;
   } catch (err: any) {
-    if (err instanceof PrismaClientKnownRequestError) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientUnknownRequestError ||
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 
   if (!topic)
-    return NextResponse.json({ error: "topic not found" }, { status: 404 });
+    return NextResponse.json({ error: "Topic not found." }, { status: 404 });
 
   const steps = [];
 
@@ -281,18 +243,6 @@ export async function PUT(
     await prisma.$transaction(steps);
     return NextResponse.json({}, { status: 200 });
   } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 }

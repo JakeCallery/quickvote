@@ -3,14 +3,8 @@ import prisma from "@/prisma/db";
 import schema from "@/app/api/topics/schema";
 import { getToken } from "next-auth/jwt";
 import { Item } from "@/types/item";
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-} from "@prisma/client/runtime/library";
 import { Logger } from "next-axiom";
-import { randomUUID } from "crypto";
+import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
 
 export async function GET(req: NextRequest) {
   const token = await getToken({ req: req });
@@ -26,19 +20,7 @@ export async function GET(req: NextRequest) {
     });
     return NextResponse.json(topics);
   } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 }
 
@@ -69,49 +51,10 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (err: any) {
-    if (err instanceof PrismaClientKnownRequestError) {
-      log.info("PrismaClientKnownRequestError", {
-        code: "400",
-        url: req.url,
-        message: err.message,
-        error: err,
-      });
-      await log.flush();
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      log.error("PrismaClientError", {
-        code: "500",
-        url: req.url,
-        message: err.message,
-        error: err,
-      });
-      await log.flush();
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      if ("toString" in err && typeof err.toString === "function") {
-        log.error("Unhandled Server Error", {
-          code: "500",
-          url: req.url,
-          message: err.toString(),
-          error: err,
-        });
-        await log.flush();
-        return NextResponse.json({ error: err.toString() }, { status: 500 });
-      }
-      log.error("Unhandled Server Error", {
-        code: "500",
-        url: req.url,
-        message: "",
-        error: err,
-      });
-      await log.flush();
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
+
+  //TODO: If invitedUsers is empty, but requested invited users is not, warn user
 
   try {
     const usersToConnect =
@@ -137,21 +80,8 @@ export async function POST(req: NextRequest) {
         },
       },
     });
-
     return NextResponse.json(newTopic, { status: 201 });
   } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 }

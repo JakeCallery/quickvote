@@ -6,6 +6,7 @@ import { Topic } from "@/types/topic";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import TopicForm from "@/app/components/TopicForm/TopicForm";
+import { getFetchErrorMessage } from "@/app/helpers/clientSideErrorHandling";
 const CreateTopicForm = ({
   mutateTopic,
 }: {
@@ -18,17 +19,25 @@ const CreateTopicForm = ({
   const createTopic = async (newTopic: Topic) => {
     setIsSaving(true);
     let res;
-    if (mutateTopic) {
-      res = await mutateTopic(addTopic(newTopic), addTopicOptions(newTopic));
-    } else {
-      res = await addTopic(newTopic);
-    }
 
-    if (!("error" in res)) {
+    try {
+      if (mutateTopic) {
+        res = await mutateTopic(addTopic(newTopic), addTopicOptions(newTopic));
+      } else {
+        res = await addTopic(newTopic);
+      }
       router.push("/topics");
-    } else {
-      console.error("[JAC-ERROR]", res.error.info);
-      toast.error(`${res.error.message}`);
+    } catch (error) {
+      const thisError = error as FetchError;
+      console.error(
+        "[JAC-ERROR]",
+        thisError.message,
+        thisError.originalErrorMessage,
+        thisError.status,
+      );
+      toast.error(
+        `${getFetchErrorMessage(error)}: ${thisError.originalErrorMessage}`,
+      );
       setIsSaving(false);
     }
   };

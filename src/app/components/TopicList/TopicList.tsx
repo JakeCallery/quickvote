@@ -17,6 +17,8 @@ import {
 import { useRouter } from "next/navigation";
 import { TOPICS_API_ENDPOINT } from "@/app/config/paths";
 import { Topic } from "@/types/topic";
+import toast from "react-hot-toast";
+import { getFetchErrorMessage } from "@/app/helpers/clientSideErrorHandling";
 
 const TopicList = () => {
   const router = useRouter();
@@ -34,7 +36,16 @@ const TopicList = () => {
     try {
       await mutate(deleteTopic(topicId), deleteTopicOptions(topicId));
     } catch (error) {
-      console.error("[JAC]Error: ", error);
+      const thisError = error as FetchError;
+      console.error(
+        "[JAC-ERROR]",
+        thisError.message,
+        thisError.originalErrorMessage,
+        thisError.status,
+      );
+      toast.error(
+        `${getFetchErrorMessage(error)}: ${thisError.originalErrorMessage}`,
+      );
     }
   };
 
@@ -42,7 +53,13 @@ const TopicList = () => {
   if (isLoading) {
     content = <p>Loading...</p>;
   } else if (error) {
-    content = <p>{error.message}</p>;
+    content = (
+      <p>{`${error.message}${
+        error.originalErrorMessage && error.originalErrorMessage !== ""
+          ? ": " + error.originalErrorMessage
+          : "."
+      }`}</p>
+    );
   } else {
     content = (
       <table className="table">

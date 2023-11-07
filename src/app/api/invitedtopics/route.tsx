@@ -7,6 +7,7 @@ import {
   PrismaClientUnknownRequestError,
 } from "@prisma/client/runtime/library";
 import prisma from "@/prisma/db";
+import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
 
 export async function GET(req: NextRequest) {
   const token = await getToken({ req: req });
@@ -26,18 +27,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(currentUser.invitedTopics, { status: 200 });
   } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    } else if (
-      err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
-    ) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    } else {
-      return NextResponse.json({ error: err }, { status: 500 });
-    }
+    return handlePrismaError(req, err, token);
   }
 }

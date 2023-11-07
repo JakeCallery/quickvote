@@ -5,6 +5,7 @@ import { updateTopic } from "@/app/apicallers/topicApiCallers";
 import toast from "react-hot-toast";
 import TopicForm from "@/app/components/TopicForm/TopicForm";
 import { useRouter } from "next/navigation";
+import { getFetchErrorMessage } from "@/app/helpers/clientSideErrorHandling";
 
 const EditTopicForm = ({ topic }: { topic: Topic }) => {
   const router = useRouter();
@@ -15,16 +16,20 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
       const resData = await updateTopic(updatedTopic);
       //TODO: Find a way to update the local cache instead of a full refresh of the topics
       router.refresh();
-      if (!("error" in resData)) {
-        router.push("/topics");
-      } else {
-        console.log("[JAC-ERROR]", resData.error);
-        toast.error("Unable to save changes to topic.");
-        setIsCommittingChanges(false);
-      }
-    } catch (err) {
-      console.error("[JAC-ERROR]", err);
-      toast.error("Unable to save changes to topic.");
+      router.push("/topics");
+    } catch (error) {
+      const thisError = error as FetchError;
+      console.error(
+        "[JAC-ERROR]",
+        thisError.message,
+        thisError.originalErrorMessage,
+        thisError.status,
+      );
+      toast.error(
+        `${getFetchErrorMessage(error)}: ${thisError.originalErrorMessage}`,
+      );
+      // console.error("[JAC-ERROR]", err);
+      // toast.error("Unable to save changes to topic.");
       setIsCommittingChanges(false);
     }
   };

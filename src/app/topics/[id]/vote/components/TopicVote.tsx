@@ -9,6 +9,8 @@ import {
   addVoteOptions,
   getVotesForTopic,
 } from "@/app/apicallers/topicApiCallers";
+import toast from "react-hot-toast";
+import { getFetchErrorMessage } from "@/app/helpers/clientSideErrorHandling";
 
 const TopicVote = ({ topic }: { topic: Topic }) => {
   const {
@@ -28,10 +30,23 @@ const TopicVote = ({ topic }: { topic: Topic }) => {
     const currentVC = voteCounts?.find((vc) => vc.itemId === item.id);
     if (currentVC) {
       setIsVoteDisabled(true);
-      await mutate(
-        addVote(item.id!, topic.id, currentVC),
-        addVoteOptions(currentVC),
-      );
+      try {
+        await mutate(
+          addVote(item.id!, topic.id, currentVC),
+          addVoteOptions(currentVC),
+        );
+      } catch (error) {
+        const thisError = error as FetchError;
+        console.error(
+          "[JAC-ERROR]",
+          thisError.message,
+          thisError.originalErrorMessage,
+          thisError.status,
+        );
+        toast.error(
+          `${getFetchErrorMessage(error)}: ${thisError.originalErrorMessage}`,
+        );
+      }
       setIsVoteDisabled(false);
     }
   };
