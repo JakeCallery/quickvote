@@ -129,16 +129,16 @@ export const addTopic = async (newTopic: Topic) => {
     });
 
     if (!res.ok) {
-      const error = new Error(
+      const fetchError = new Error(
         "An error occurred while creating a new topic.",
       ) as FetchError;
-      error.info = await res.json();
-      error.status = res.status;
-      throw error;
+      fetchError.info = await res.json();
+      fetchError.status = res.status;
+      return { error: fetchError };
     }
     return await res.json();
   } catch (error) {
-    return { error: error };
+    return { error: new Error("Unknown error occurred while creating topic.") };
   }
 };
 

@@ -27,8 +27,8 @@ const CreateTopicForm = ({
     if (!("error" in res)) {
       router.push("/topics");
     } else {
-      console.log("[JAC-ERROR]", res.error);
-      toast.error("Unable to add new topic");
+      console.error("[JAC-ERROR]", res.error.info);
+      toast.error(`${res.error.message}`);
       setIsSaving(false);
     }
   };

@@ -9,9 +9,12 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from "@prisma/client/runtime/library";
+import { Logger } from "next-axiom";
+import { randomUUID } from "crypto";
 
 export async function GET(req: NextRequest) {
   const token = await getToken({ req: req });
+  const log = new Logger();
 
   if (!token) {
     return NextResponse.json({ error: "User not logged in." }, { status: 401 });
@@ -40,6 +43,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const log = new Logger();
   const token = await getToken({ req: req });
 
   if (!token) {
@@ -64,18 +68,47 @@ export async function POST(req: NextRequest) {
         email: { in: body.invitedUsers },
       },
     });
-  } catch (err: unknown) {
-    if (
-      err instanceof PrismaClientKnownRequestError ||
-      err instanceof PrismaClientUnknownRequestError
-    ) {
+  } catch (err: any) {
+    if (err instanceof PrismaClientKnownRequestError) {
+      log.info("PrismaClientKnownRequestError", {
+        code: "400",
+        url: req.url,
+        message: err.message,
+        error: err,
+      });
+      await log.flush();
       return NextResponse.json({ error: err.message }, { status: 400 });
     } else if (
       err instanceof PrismaClientRustPanicError ||
-      err instanceof PrismaClientInitializationError
+      err instanceof PrismaClientInitializationError ||
+      err instanceof PrismaClientUnknownRequestError
     ) {
+      log.error("PrismaClientError", {
+        code: "500",
+        url: req.url,
+        message: err.message,
+        error: err,
+      });
+      await log.flush();
       return NextResponse.json({ error: err.message }, { status: 500 });
     } else {
+      if ("toString" in err && typeof err.toString === "function") {
+        log.error("Unhandled Server Error", {
+          code: "500",
+          url: req.url,
+          message: err.toString(),
+          error: err,
+        });
+        await log.flush();
+        return NextResponse.json({ error: err.toString() }, { status: 500 });
+      }
+      log.error("Unhandled Server Error", {
+        code: "500",
+        url: req.url,
+        message: "",
+        error: err,
+      });
+      await log.flush();
       return NextResponse.json({ error: err }, { status: 500 });
     }
   }
