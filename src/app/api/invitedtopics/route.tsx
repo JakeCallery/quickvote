@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-} from "@prisma/client/runtime/library";
 import prisma from "@/prisma/db";
 import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
 

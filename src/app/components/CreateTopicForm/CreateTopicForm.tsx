@@ -18,13 +18,11 @@ const CreateTopicForm = ({
 
   const createTopic = async (newTopic: Topic) => {
     setIsSaving(true);
-    let res;
-
     try {
       if (mutateTopic) {
-        res = await mutateTopic(addTopic(newTopic), addTopicOptions(newTopic));
+        await mutateTopic(addTopic(newTopic), addTopicOptions(newTopic));
       } else {
-        res = await addTopic(newTopic);
+        await addTopic(newTopic);
       }
       router.push("/topics");
     } catch (error) {

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getToken, JWT } from "next-auth/jwt";
+import { getToken } from "next-auth/jwt";
 
-type apiValidationResponse = {
-  token: JWT | null;
-  parsedBody: object | null;
-  errorResponse: NextResponse | null;
-};
+// type ApiValidationResponse = {
+//   token: JWT | null;
+//   parsedBody: object | null;
+//   errorResponse: NextResponse | null;
+// };
 
+//TODO: Properly type this return value
 export const validateTokenAndBody = async <T extends z.ZodTypeAny>(
   req: NextRequest,
   bodySchema: T,

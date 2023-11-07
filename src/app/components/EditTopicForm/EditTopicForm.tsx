@@ -13,7 +13,7 @@ const EditTopicForm = ({ topic }: { topic: Topic }) => {
   const saveChanges = async (updatedTopic: Topic) => {
     setIsCommittingChanges(true);
     try {
-      const resData = await updateTopic(updatedTopic);
+      await updateTopic(updatedTopic);
       //TODO: Find a way to update the local cache instead of a full refresh of the topics
       router.refresh();
       router.push("/topics");

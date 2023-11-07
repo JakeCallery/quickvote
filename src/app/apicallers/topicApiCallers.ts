@@ -60,14 +60,14 @@ export const getVotesForTopic = async (url: string) => {
   } catch (error) {
     throw createClientSideUnknownError(
       error,
-      "Unknown error occurred while fetching the votes.",
+      "Unknown error occurred while fetching the votes",
     );
   }
 
   if (!res.ok) {
     throw await createClientSideFetchError(
       res,
-      "An error occurred while fetching the votes.",
+      "An error occurred while fetching the votes",
     );
   }
 

@@ -3,13 +3,11 @@ import prisma from "@/prisma/db";
 import topicSchema from "@/app/api/topics/topicSchema";
 import { getToken } from "next-auth/jwt";
 import { Item } from "@/types/item";
-import { Logger } from "next-axiom";
 import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
 import { validateTokenAndBody } from "@/app/helpers/apiValidation";
 
 export async function GET(req: NextRequest) {
   const token = await getToken({ req: req });
-  const log = new Logger();
 
   if (!token) {
     return NextResponse.json({ error: "User not logged in." }, { status: 401 });
@@ -26,8 +24,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const log = new Logger();
-
   const { token, parsedBody, errorResponse } = await validateTokenAndBody(
     req,
     topicSchema,
