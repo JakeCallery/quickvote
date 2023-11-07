@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma/db";
-import schema from "@/app/api/topics/schema";
+import topicSchema from "@/app/api/topics/topicSchema";
 import { getToken } from "next-auth/jwt";
 import { Item } from "@/types/item";
 import { Topic } from "@/types/topic";
 import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
+import { validateTokenAndBody } from "@/app/helpers/apiValidation";
 
 export async function GET(
   req: NextRequest,
@@ -72,20 +73,15 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const token = await getToken({ req: req });
-  if (!token) {
-    return NextResponse.json({ error: "User not logged in." }, { status: 401 });
-  }
+  const { token, parsedBody, errorResponse } = await validateTokenAndBody(
+    req,
+    topicSchema,
+  );
 
-  const body = await req.json();
-  const validation = schema.safeParse(body);
+  if (errorResponse) return errorResponse;
 
-  if (!validation.success) {
-    return NextResponse.json(
-      { error: validation.error.errors },
-      { status: 400 },
-    );
-  }
+  //TODO: Properly Type this
+  const body = parsedBody;
 
   let topic: Topic;
   try {
