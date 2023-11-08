@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getToken } from "next-auth/jwt";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 // type ApiValidationResponse = {
 //   token: JWT | null;
@@ -57,4 +59,22 @@ export const validateTokenAndBody = async <T extends z.ZodTypeAny>(
     parsedBody: body,
     errorResponse: null,
   };
+};
+
+type Unit = "ms" | "s" | "m" | "h" | "d";
+type Duration = `${number} ${Unit}` | `${number}${Unit}`;
+export const validateRateLimit = async (
+  req: NextRequest,
+  identifier: string | null | undefined = undefined,
+  numRequests: number = 5,
+  windowDuration: Duration = "10s",
+) => {
+  const ratelimit = new Ratelimit({
+    redis: Redis.fromEnv(),
+    limiter: Ratelimit.fixedWindow(numRequests, windowDuration),
+  });
+
+  const id = identifier || (req.headers.get("x-forwarded-for") ?? "");
+  const { success } = await ratelimit.limit(id);
+  return success;
 };

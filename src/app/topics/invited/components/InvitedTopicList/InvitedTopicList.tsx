@@ -19,7 +19,13 @@ const InvitedTopicList = () => {
   if (isLoading) {
     content = <p>Loading...</p>;
   } else if (error) {
-    content = <p>{error.message}</p>;
+    content = (
+      <p>{`${error.message}${
+        error.originalErrorMessage && error.originalErrorMessage !== ""
+          ? ": " + error.originalErrorMessage
+          : "."
+      }`}</p>
+    );
   } else {
     content = (
       <div>
@@ -61,12 +67,7 @@ const InvitedTopicList = () => {
     );
   }
 
-  return (
-    <>
-      <div>{content}</div>
-      {error && <h1>{error}</h1>}
-    </>
-  );
+  return <div>{content}</div>;
 };
 
 export default InvitedTopicList;
