@@ -132,13 +132,11 @@ export const addTopic = async (newTopic: Topic) => {
   const items = newTopic.items.map((item) => {
     return { name: item.name };
   });
-  const emailAddresses = newTopic.invitedUsers?.map((user) => {
-    return user.email;
-  });
+
   const data = {
     name: newTopic.name,
     items: items,
-    invitedUsers: emailAddresses,
+    invitedUsers: newTopic.invitedUsers || [],
   };
 
   let res;
@@ -226,8 +224,7 @@ export const updateTopic = async (updatedTopic: Topic) => {
   const data = {
     name: updatedTopic.name,
     items: updatedTopic.items,
-    invitedUsers:
-      updatedTopic.invitedUsers?.map((invitedUser) => invitedUser.email) || [],
+    invitedUsers: updatedTopic.invitedUsers || [],
   };
 
   let res;

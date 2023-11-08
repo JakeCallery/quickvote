@@ -5,6 +5,7 @@ import { getToken } from "next-auth/jwt";
 import { Item } from "@/types/item";
 import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
 import { validateTokenAndBody } from "@/app/helpers/apiValidation";
+import { Topic } from "@/types/topic";
 
 export async function GET(req: NextRequest) {
   const token = await getToken({ req: req });
@@ -31,15 +32,16 @@ export async function POST(req: NextRequest) {
 
   if (errorResponse) return errorResponse;
 
-  //TODO: Properly type this
-  const body = parsedBody;
+  const body = parsedBody as Topic;
 
   //Find users by email address
   let invitedUsers = [];
+  const invitedUserEmails =
+    body.invitedUsers?.map((invitedUser) => invitedUser.email) || [];
   try {
     invitedUsers = await prisma.user.findMany({
       where: {
-        email: { in: body.invitedUsers },
+        email: { in: invitedUserEmails },
       },
     });
   } catch (err: any) {
@@ -64,7 +66,7 @@ export async function POST(req: NextRequest) {
         userId: token.sub!,
         items: {
           create: body.items.map((item: Item) => {
-            return { name: item.name, userId: token.sub };
+            return { name: item.name, userId: token.sub! };
           }),
         },
         invitedUsers: {

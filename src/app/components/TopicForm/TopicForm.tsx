@@ -5,6 +5,9 @@ import { InvitedUser } from "@/types/invitedUser";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import toast from "react-hot-toast";
+import { EditableListItem } from "@/types/editableListItem";
+import EditableList from "@/app/components/EditableList/EditableList";
+import { generateTempId } from "@/app/helpers/tempIds";
 
 const emailSchema = z.string().email();
 
@@ -24,10 +27,13 @@ const TopicForm = ({
   committingChanges: boolean;
 }) => {
   const router = useRouter();
+
   const [topicName, setTopicName] = useState(topic?.name || "");
-  const [topicItems, setTopicItems] = useState<Item[]>(
+
+  const [topicItems, setTopicItems] = useState<EditableListItem[]>(
     topic?.items.map((item) => ({ name: item.name, id: item.id })) || [],
   );
+
   const [topicInvitedUsers, setTopicInvitedUsers] = useState<InvitedUser[]>(
     topic?.invitedUsers?.map((invitedUser) => ({
       email: invitedUser.email,
@@ -35,19 +41,15 @@ const TopicForm = ({
     })) || [],
   );
 
-  const [invitedUserToEdit, setInvitedUserToEdit] =
-    useState<InvitedUser | null>(null);
-  const [invitedUserToEditText, setInvitedUserToEditText] = useState("");
   const [newInvitedUserEmail, setNewInvitedUserEmail] = useState("");
   const [newTopicItemName, setNewTopicItemName] = useState("");
-  const [itemToEdit, setItemToEdit] = useState<Item | null>(null);
-  const [itemToEditText, setItemToEditText] = useState("");
 
   const onAddItemClick = () => {
-    topicItems.push({
-      id: Date.now().toString(),
-      name: newTopicItemName,
-    });
+    setTopicItems([
+      ...topicItems,
+      { id: generateTempId(), name: newTopicItemName },
+    ]);
+
     setNewTopicItemName("");
   };
 
@@ -55,7 +57,7 @@ const TopicForm = ({
     if (emailSchema.safeParse(newInvitedUserEmail).success) {
       topicInvitedUsers.push({
         email: newInvitedUserEmail,
-        id: Date.now().toString(),
+        id: generateTempId(),
       });
       setNewInvitedUserEmail("");
     } else {
@@ -64,8 +66,13 @@ const TopicForm = ({
   };
 
   const onSaveChangesClick = () => {
-    const trimmedItems = topicItems.map((item) => {
-      return { ...item, name: item.name.trim() };
+    const trimmedItems = topicItems.map((item): Item => {
+      return {
+        ...item,
+        name: item.name.trim(),
+        userId: "",
+        topicId: topic?.id || "",
+      };
     });
 
     const trimmedUsers = topicInvitedUsers.map((invitedUser) => {
@@ -73,7 +80,7 @@ const TopicForm = ({
     });
 
     const newTopic: Topic = {
-      id: topic?.id || Date.now().toString(),
+      id: topic?.id || generateTempId(),
       name: topicName,
       items: trimmedItems,
       invitedUsers: trimmedUsers,
@@ -97,13 +104,15 @@ const TopicForm = ({
     }
   };
 
-  const deleteItem = (itemToRemove: Item) => {
-    setTopicItems(topicItems.filter((item) => item.id !== itemToRemove.id));
+  const onItemListUpdate = (baseItems: EditableListItem[]) => {
+    setTopicItems(baseItems);
   };
 
-  const deleteInvitedUser = (userToRemove: InvitedUser) => {
+  const onTopicInvitedUsersUpdate = (baseItems: EditableListItem[]) => {
     setTopicInvitedUsers(
-      topicInvitedUsers.filter((user) => user.id !== userToRemove.id),
+      baseItems.map((baseItem) => {
+        return { email: baseItem.name, id: baseItem.id };
+      }),
     );
   };
 
@@ -124,67 +133,14 @@ const TopicForm = ({
       </div>
       <div>
         <h3 className="text-secondary font-bold text-xl">Items To Vote On</h3>
-        <ul id="items-to-add-list" className="mt-2 mb-2">
-          {topicItems && topicItems.length > 0 ? (
-            topicItems.map((item) => {
-              return (
-                <li
-                  key={item.id}
-                  className={`mb-2 border pl-2 ${
-                    itemToEdit?.id !== item.id ? "hover:bg-base-300" : ""
-                  }`}
-                >
-                  {itemToEdit?.id !== item.id ? (
-                    <div className="flex flex-row space-x-2 items-center">
-                      <span className="text-2xl text-secondary-content-content font-medium grow">
-                        {item.name}
-                      </span>
-                      <button
-                        className="btn btn-md hover:btn-primary"
-                        onClick={() => {
-                          setItemToEdit(item);
-                          setItemToEditText(item.name);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn btn-md hover:btn-primary"
-                        onClick={() => deleteItem(item)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ) : (
-                    <input
-                      id="edit-item-input"
-                      className="input input-bordered input-primary w-full mb-2"
-                      type="text"
-                      placeholder="Name of item to vote on"
-                      value={itemToEditText}
-                      onChange={(e: FormEvent<HTMLInputElement>) =>
-                        setItemToEditText(e.currentTarget.value)
-                      }
-                      onBlur={() => {
-                        item.name = itemToEditText.trim();
-                        setItemToEditText("");
-                        setItemToEdit(null);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          e.currentTarget.blur();
-                        }
-                      }}
-                    />
-                  )}
-                </li>
-              );
-            })
-          ) : (
-            <li className="text-secondary">No items added to topic yet</li>
-          )}
-        </ul>
+
+        <EditableList
+          className="mt-2 mb-2"
+          items={topicItems}
+          onUpdate={onItemListUpdate}
+          emptyItemsText="No items to vote on yet."
+        />
+
         <input
           id="new-item-input"
           className="input input-bordered input-primary w-full mb-2"
@@ -211,82 +167,18 @@ const TopicForm = ({
       </div>
       <div>
         <h3 className="text-secondary font-bold text-xl">Users To Invite</h3>
-        <ul id="users-to-invite-list" className="mt-2 mb-2">
-          {topicInvitedUsers && topicInvitedUsers.length > 0 ? (
-            topicInvitedUsers.map((invitedUser) => {
-              return (
-                <li
-                  className={`mb-2 border pl-2 ${
-                    invitedUserToEdit?.id !== invitedUser.id
-                      ? "hover:bg-base-300"
-                      : ""
-                  }`}
-                  key={invitedUser.id}
-                >
-                  {invitedUserToEdit?.id !== invitedUser.id ? (
-                    <div className="flex flex-row space-x-2 items-center">
-                      <span className="text-2xl text-secondary-content-content font-medium grow">
-                        {invitedUser.email}
-                      </span>
-                      <button
-                        className="btn btn-md hover:btn-primary"
-                        onClick={() => {
-                          setInvitedUserToEdit(invitedUser);
-                          setInvitedUserToEditText(invitedUser.email);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn btn-md hover:btn-primary"
-                        onClick={() => deleteInvitedUser(invitedUser)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex">
-                      <input
-                        id="edit-invited-user-input"
-                        className="input input-bordered input-primary w-full mb-2"
-                        type="text"
-                        placeholder="Email address of user to invite"
-                        value={invitedUserToEditText}
-                        onChange={(e: FormEvent<HTMLInputElement>) =>
-                          setInvitedUserToEditText(e.currentTarget.value)
-                        }
-                        onBlur={() => {
-                          invitedUser.email = invitedUserToEditText.trim();
-                          setInvitedUserToEditText("");
-                          setInvitedUserToEdit(null);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            if (e.currentTarget.value.trim() == "") return;
-                            e.currentTarget.blur();
-                          }
-                        }}
-                      />
-                      <button
-                        className="btn btn-primary ml-2"
-                        onClick={() => {
-                          invitedUser.email = invitedUserToEditText.trim();
-                          setInvitedUserToEditText("");
-                          setInvitedUserToEdit(null);
-                        }}
-                      >
-                        Save
-                      </button>
-                    </div>
-                  )}
-                </li>
-              );
-            })
-          ) : (
-            <li className="text-secondary">No users invited to topic yet</li>
-          )}
-        </ul>
+        <EditableList
+          className="mt-2 mb-2"
+          items={topicInvitedUsers.map((invitedUser) => {
+            return {
+              name: invitedUser.email,
+              id: invitedUser.id,
+            } as EditableListItem;
+          })}
+          onUpdate={onTopicInvitedUsersUpdate}
+          emptyItemsText="No users invited to topic yet."
+        />
+
         <input
           id="new-invited-user-input"
           className="input input-bordered input-primary w-full mb-2"

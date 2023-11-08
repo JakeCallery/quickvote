@@ -1,7 +1,5 @@
+import { NewItem } from "@/types/newItem";
+
 export type Item = {
-  name: string;
-  id?: string;
-  userId?: string;
-  topicId?: string;
-  voteCount?: number;
-};
+  id: string;
+} & NewItem;
