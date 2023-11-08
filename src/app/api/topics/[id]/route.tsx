@@ -5,7 +5,10 @@ import { getToken } from "next-auth/jwt";
 import { Item } from "@/types/item";
 import { Topic } from "@/types/topic";
 import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
-import { validateTokenAndBody } from "@/app/helpers/apiValidation";
+import {
+  validateRateLimit,
+  validateTokenAndBody,
+} from "@/app/helpers/apiValidation";
 import { NewItem } from "@/types/newItem";
 
 export async function GET(
@@ -17,6 +20,12 @@ export async function GET(
   if (!token) {
     return NextResponse.json({ error: "User not logged in." }, { status: 401 });
   }
+
+  if (!(await validateRateLimit(req, token.sub)))
+    return NextResponse.json(
+      { error: "Rate limit exceeded." },
+      { status: 429 },
+    );
 
   try {
     const topic = await prisma.topic.findUnique({
@@ -53,6 +62,12 @@ export async function DELETE(
     return NextResponse.json({ error: "User not logged in." }, { status: 401 });
   }
 
+  if (!(await validateRateLimit(req, token.sub)))
+    return NextResponse.json(
+      { error: "Rate limit exceeded." },
+      { status: 429 },
+    );
+
   try {
     const topic = await prisma.topic.findUnique({
       where: { id: params.id, userId: token.sub },
@@ -80,6 +95,12 @@ export async function PUT(
   );
 
   if (errorResponse) return errorResponse;
+
+  if (!(await validateRateLimit(req, token.sub)))
+    return NextResponse.json(
+      { error: "Rate limit exceeded." },
+      { status: 429 },
+    );
 
   const body = parsedBody as Topic;
 

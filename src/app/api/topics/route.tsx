@@ -4,7 +4,10 @@ import topicSchema from "@/app/api/topics/topicSchema";
 import { getToken } from "next-auth/jwt";
 import { Item } from "@/types/item";
 import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
-import { validateTokenAndBody } from "@/app/helpers/apiValidation";
+import {
+  validateRateLimit,
+  validateTokenAndBody,
+} from "@/app/helpers/apiValidation";
 import { Topic } from "@/types/topic";
 
 export async function GET(req: NextRequest) {
@@ -13,6 +16,12 @@ export async function GET(req: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "User not logged in." }, { status: 401 });
   }
+
+  if (!(await validateRateLimit(req, token.sub)))
+    return NextResponse.json(
+      { error: "Rate limit exceeded." },
+      { status: 429 },
+    );
 
   try {
     const topics = await prisma.topic.findMany({
@@ -31,6 +40,12 @@ export async function POST(req: NextRequest) {
   );
 
   if (errorResponse) return errorResponse;
+
+  if (!(await validateRateLimit(req, token.sub)))
+    return NextResponse.json(
+      { error: "Rate limit exceeded." },
+      { status: 429 },
+    );
 
   const body = parsedBody as Topic;
 

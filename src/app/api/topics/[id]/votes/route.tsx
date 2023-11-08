@@ -4,6 +4,10 @@ import prisma from "@/prisma/db";
 import { VoteCount } from "@/types/voteCount";
 import { z } from "zod";
 import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
+import {
+  validateRateLimit,
+  validateTokenAndBody,
+} from "@/app/helpers/apiValidation";
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
@@ -13,6 +17,12 @@ export async function GET(
   if (!token) {
     return NextResponse.json({ error: "User not logged in." }, { status: 401 });
   }
+
+  if (!(await validateRateLimit(req, token.sub)))
+    return NextResponse.json(
+      { error: "Rate limit exceeded." },
+      { status: 429 },
+    );
 
   try {
     const topic = await prisma.topic.findUnique({
@@ -64,10 +74,20 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const token = await getToken({ req: req });
-  if (!token) {
-    return NextResponse.json({ error: "User not logged in." }, { status: 401 });
-  }
+  const { token, parsedBody, errorResponse } = await validateTokenAndBody(
+    req,
+    postVoteSchema,
+  );
+
+  if (errorResponse) return errorResponse;
+
+  const body = parsedBody as { itemId: string };
+
+  if (!(await validateRateLimit(req, token.sub)))
+    return NextResponse.json(
+      { error: "Rate limit exceeded." },
+      { status: 429 },
+    );
 
   const topic = await prisma.topic.findUnique({
     where: { id: params.id },
@@ -84,16 +104,6 @@ export async function POST(
     return NextResponse.json(
       { error: "User not invited to topic" },
       { status: 404 },
-    );
-  }
-
-  const body = await req.json();
-  const validation = postVoteSchema.safeParse(body);
-
-  if (!validation.success) {
-    return NextResponse.json(
-      { error: validation.error.errors },
-      { status: 400 },
     );
   }
 
