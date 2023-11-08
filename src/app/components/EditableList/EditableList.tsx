@@ -1,6 +1,5 @@
-import React, { FormEvent, useEffect, useState } from "react";
-import { Item } from "@/types/item";
-import { BaseItem } from "@/types/baseItem";
+import React, { FormEvent, useState } from "react";
+import { EditableListItem } from "@/types/editableListItem";
 
 const EditableList = ({
   className,
@@ -9,14 +8,14 @@ const EditableList = ({
   emptyItemsText = "No items yet.",
 }: {
   className: string;
-  items: BaseItem[];
-  onUpdate: (updatedItems: BaseItem[]) => void;
+  items: EditableListItem[];
+  onUpdate: (updatedItems: EditableListItem[]) => void;
   emptyItemsText: string;
 }) => {
-  const [itemToEdit, setItemToEdit] = useState<Item | null>(null);
+  const [itemToEdit, setItemToEdit] = useState<EditableListItem | null>(null);
   const [itemToEditText, setItemToEditText] = useState("");
 
-  const updateItem = (updatedItem: BaseItem) => {
+  const updateItem = (updatedItem: EditableListItem) => {
     return items.map((item) => {
       if (updatedItem.id === item.id) {
         return { name: updatedItem.name, id: item.id };
@@ -24,13 +23,13 @@ const EditableList = ({
       return { name: item.name, id: item.id };
     });
   };
-  const deleteItem = (itemToRemove: Item) => {
+  const deleteItem = (itemToRemove: EditableListItem) => {
     onUpdate(
       cloneBaseItems(items.filter((item) => item.id !== itemToRemove.id)),
     );
   };
 
-  const cloneBaseItems = (items: BaseItem[]) => {
+  const cloneBaseItems = (items: EditableListItem[]) => {
     return items.map((item) => {
       return { id: item.id, name: item.name };
     });
@@ -80,7 +79,6 @@ const EditableList = ({
                       setItemToEditText(e.currentTarget.value)
                     }
                     onBlur={() => {
-                      // item.name = itemToEditText.trim();
                       const newName = itemToEditText.trim();
                       setItemToEditText("");
                       setItemToEdit(null);

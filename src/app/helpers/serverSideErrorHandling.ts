@@ -17,6 +17,7 @@ export const handlePrismaError = async (
 ) => {
   const log = new Logger();
 
+  //TODO: Find a way to do this with EdgeRuntime instead of NodeJS Runtime
   const digest = crypto
     .createHash("sha1")
     .update(
@@ -36,7 +37,10 @@ export const handlePrismaError = async (
       digest: digest,
     });
     await log.flush();
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json(
+      { error: error.message, digest: digest },
+      { status: 400 },
+    );
   } else if (
     error instanceof PrismaClientRustPanicError ||
     error instanceof PrismaClientInitializationError ||
@@ -47,9 +51,13 @@ export const handlePrismaError = async (
       url: request.url,
       message: error.message,
       error: error,
+      digest: digest,
     });
     await log.flush();
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message, digest: digest },
+      { status: 500 },
+    );
   } else {
     if ("toString" in error && typeof error.toString === "function") {
       log.error("Unhandled Server Error", {
@@ -57,9 +65,13 @@ export const handlePrismaError = async (
         url: request.url,
         message: error.toString(),
         error: error,
+        digest: digest,
       });
       await log.flush();
-      return NextResponse.json({ error: error.toString() }, { status: 500 });
+      return NextResponse.json(
+        { error: error.toString(), digest: digest },
+        { status: 500 },
+      );
     }
     log.error("Unhandled Server Error", {
       code: "500",
@@ -68,6 +80,6 @@ export const handlePrismaError = async (
       error: error,
     });
     await log.flush();
-    return NextResponse.json({ error: error }, { status: 500 });
+    return NextResponse.json({ error: error, digest: digest }, { status: 500 });
   }
 };

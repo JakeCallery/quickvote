@@ -6,6 +6,7 @@ import { Item } from "@/types/item";
 import { Topic } from "@/types/topic";
 import { handlePrismaError } from "@/app/helpers/serverSideErrorHandling";
 import { validateTokenAndBody } from "@/app/helpers/apiValidation";
+import { NewItem } from "@/types/newItem";
 
 export async function GET(
   req: NextRequest,
@@ -80,8 +81,7 @@ export async function PUT(
 
   if (errorResponse) return errorResponse;
 
-  //TODO: Properly Type this
-  const body = parsedBody;
+  const body = parsedBody as Topic;
 
   let topic: Topic;
   try {
@@ -117,17 +117,20 @@ export async function PUT(
     return !topic.items.find((topicItem) => topicItem.id === bodyItem.id);
   });
 
-  //build up new item
-  itemsToAdd.forEach((item: Item) => {
-    delete item.id;
-    item.userId = token.sub;
-    item.topicId = topic.id;
+  //build up new items (removing the temp id from the client)
+  const newItemsToAdd = itemsToAdd.map((item: Item) => {
+    const itemToAdd: NewItem = {
+      name: item.name,
+      userId: token.sub!,
+      topicId: topic.id,
+    };
+    return itemToAdd;
   });
 
-  if (itemsToAdd?.length > 0) {
+  if (newItemsToAdd?.length > 0) {
     steps.push(
       prisma.item.createMany({
-        data: itemsToAdd,
+        data: newItemsToAdd,
       }),
     );
   }
@@ -176,11 +179,13 @@ export async function PUT(
 
   //add additional invited users
   const invitedUsersEmailToAdd =
-    body.invitedUsers.filter((bodyInvitedUserEmail: string) => {
-      return !topic.invitedUsers?.find((topicInvitedUser) => {
-        return topicInvitedUser.email === bodyInvitedUserEmail;
-      });
-    }) || [];
+    body.invitedUsers
+      ?.map((invitedUser) => invitedUser.email)
+      .filter((bodyInvitedUserEmail: string) => {
+        return !topic.invitedUsers?.find((topicInvitedUser) => {
+          return topicInvitedUser.email === bodyInvitedUserEmail;
+        });
+      }) || [];
 
   const invitedUsersToAdd =
     (await prisma.user.findMany({
@@ -209,10 +214,12 @@ export async function PUT(
   //remove missing from body invited users
   const invitedUsersEmailToRemove = topic.invitedUsers?.filter(
     (topicInvitedUser) => {
-      return !body.invitedUsers.find(
-        (bodyInvitedUserEmail: string) =>
-          bodyInvitedUserEmail === topicInvitedUser.email,
-      );
+      return !body.invitedUsers
+        ?.map((invitedUser) => invitedUser.email)
+        .find(
+          (bodyInvitedUserEmail: string) =>
+            bodyInvitedUserEmail === topicInvitedUser.email,
+        );
     },
   );
 

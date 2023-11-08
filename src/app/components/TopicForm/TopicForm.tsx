@@ -5,8 +5,9 @@ import { InvitedUser } from "@/types/invitedUser";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { BaseItem } from "@/types/baseItem";
+import { EditableListItem } from "@/types/editableListItem";
 import EditableList from "@/app/components/EditableList/EditableList";
+import { generateTempId } from "@/app/helpers/tempIds";
 
 const emailSchema = z.string().email();
 
@@ -26,10 +27,13 @@ const TopicForm = ({
   committingChanges: boolean;
 }) => {
   const router = useRouter();
+
   const [topicName, setTopicName] = useState(topic?.name || "");
-  const [topicItems, setTopicItems] = useState<BaseItem[]>(
+
+  const [topicItems, setTopicItems] = useState<EditableListItem[]>(
     topic?.items.map((item) => ({ name: item.name, id: item.id })) || [],
   );
+
   const [topicInvitedUsers, setTopicInvitedUsers] = useState<InvitedUser[]>(
     topic?.invitedUsers?.map((invitedUser) => ({
       email: invitedUser.email,
@@ -37,23 +41,13 @@ const TopicForm = ({
     })) || [],
   );
 
-  const [invitedUserToEdit, setInvitedUserToEdit] =
-    useState<InvitedUser | null>(null);
-  const [invitedUserToEditText, setInvitedUserToEditText] = useState("");
   const [newInvitedUserEmail, setNewInvitedUserEmail] = useState("");
   const [newTopicItemName, setNewTopicItemName] = useState("");
-  const [itemToEdit, setItemToEdit] = useState<Item | null>(null);
-  const [itemToEditText, setItemToEditText] = useState("");
 
   const onAddItemClick = () => {
-    // topicItems.push({
-    //   id: Date.now().toString(),
-    //   name: newTopicItemName,
-    // });
-
     setTopicItems([
       ...topicItems,
-      { id: Date.now().toString(), name: newTopicItemName },
+      { id: generateTempId(), name: newTopicItemName },
     ]);
 
     setNewTopicItemName("");
@@ -63,7 +57,7 @@ const TopicForm = ({
     if (emailSchema.safeParse(newInvitedUserEmail).success) {
       topicInvitedUsers.push({
         email: newInvitedUserEmail,
-        id: Date.now().toString(),
+        id: generateTempId(),
       });
       setNewInvitedUserEmail("");
     } else {
@@ -72,8 +66,13 @@ const TopicForm = ({
   };
 
   const onSaveChangesClick = () => {
-    const trimmedItems = topicItems.map((item) => {
-      return { ...item, name: item.name.trim() };
+    const trimmedItems = topicItems.map((item): Item => {
+      return {
+        ...item,
+        name: item.name.trim(),
+        userId: "",
+        topicId: topic?.id || "",
+      };
     });
 
     const trimmedUsers = topicInvitedUsers.map((invitedUser) => {
@@ -81,7 +80,7 @@ const TopicForm = ({
     });
 
     const newTopic: Topic = {
-      id: topic?.id || Date.now().toString(),
+      id: topic?.id || generateTempId(),
       name: topicName,
       items: trimmedItems,
       invitedUsers: trimmedUsers,
@@ -105,23 +104,11 @@ const TopicForm = ({
     }
   };
 
-  const deleteItem = (itemToRemove: Item) => {
-    setTopicItems(topicItems.filter((item) => item.id !== itemToRemove.id));
-  };
-
-  const deleteInvitedUser = (userToRemove: InvitedUser) => {
-    setTopicInvitedUsers(
-      topicInvitedUsers.filter((user) => user.id !== userToRemove.id),
-    );
-  };
-
-  const onItemListUpdate = (baseItems: BaseItem[]) => {
-    console.log("Caught Update: ", baseItems);
+  const onItemListUpdate = (baseItems: EditableListItem[]) => {
     setTopicItems(baseItems);
   };
 
-  const onTopicInvitedUsersUpdate = (baseItems: BaseItem[]) => {
-    console.log("Caught email update: ", baseItems);
+  const onTopicInvitedUsersUpdate = (baseItems: EditableListItem[]) => {
     setTopicInvitedUsers(
       baseItems.map((baseItem) => {
         return { email: baseItem.name, id: baseItem.id };
@@ -183,7 +170,10 @@ const TopicForm = ({
         <EditableList
           className="mt-2 mb-2"
           items={topicInvitedUsers.map((invitedUser) => {
-            return { name: invitedUser.email, id: invitedUser.id } as BaseItem;
+            return {
+              name: invitedUser.email,
+              id: invitedUser.id,
+            } as EditableListItem;
           })}
           onUpdate={onTopicInvitedUsersUpdate}
           emptyItemsText="No users invited to topic yet."
